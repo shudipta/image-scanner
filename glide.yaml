@@ -1,0 +1,11 @@
+package: fun
+import:
+- package: k8s.io/api
+  subpackages:
+  - apps/v1/deployment
+  - apps/v1beta1
+
+- package: github.com/docker/distribution
+  version: edc3ab29cdff8694dd6feb85cfeb4b5f1b38ed9c
+- package: github.com/heroku/docker-registry-client
+  version: master
