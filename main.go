@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"time"
-	"image-scanner/clair"
+	"github.com/shudipta/image-scanner/clair"
 	"crypto/tls"
 	"github.com/tamalsaha/go-oneliners"
 	"flag"
@@ -74,7 +74,7 @@ func GetBearerToken(resp *http.Response, err error) string {
 }
 
 func RequestSendingLayer(l *clair.LayerType) *http.Request {
-	oneliners.PrettyJson(l)
+	//oneliners.PrettyJson(l)
 
 	var layerApi struct{
 		Layer *clair.LayerType
@@ -124,7 +124,7 @@ func GetVulnerabilities(resp *http.Response, err error) []*clair.Vulnerability {
 		log.Fatalln("\nerror in converting response body into structure:\n%s\n%v\n",
 			"--------------------------------------------------", err)
 	}
-	oneliners.PrettyJson(layerApi)
+	//oneliners.PrettyJson(layerApi)
 	var vuls []*clair.Vulnerability
 	for _, feature := range layerApi.Layer.Features {
 		for _, vul := range feature.Vulnerabilities {
