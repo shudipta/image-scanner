@@ -1,0 +1,233 @@
+[
+  {
+    "Name": "CVE-2013-0340",
+    "NamespaceName": "debian:9",
+    "Description": "expat 2.1.0 and earlier does not properly handle entities expansion unless an application developer uses the XML_SetEntityDeclHandler function, which allows remote attackers to cause a denial of service (resource consumption), send HTTP requests to intranet servers, or read arbitrary files via a crafted XML document, aka an XML External Entity (XXE) issue.  NOTE: it could be argued that because expat already provides the ability to disable external entity expansion, the responsibility for resolving this issue lies with application developers; according to this argument, this entry should be REJECTed, and each affected application would need its own CVE.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2013-0340",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2016-9085",
+    "NamespaceName": "debian:9",
+    "Description": "Multiple integer overflows in libwebp allows attackers to have unspecified impact via unknown vectors.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2016-9085",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2017-5130",
+    "NamespaceName": "debian:9",
+    "Description": "An integer overflow in xmlmemory.c in libxml2 before 2.9.5, as used in Google Chrome prior to 62.0.3202.62 and other products, allowed a remote attacker to potentially exploit heap corruption via a crafted XML file.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2017-5130",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2017-5130",
+    "NamespaceName": "debian:9",
+    "Description": "An integer overflow in xmlmemory.c in libxml2 before 2.9.5, as used in Google Chrome prior to 62.0.3202.62 and other products, allowed a remote attacker to potentially exploit heap corruption via a crafted XML file.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2017-5130",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-1000001",
+    "NamespaceName": "debian:9",
+    "Description": "In glibc 2.26 and earlier there is confusion in the usage of getcwd() by realpath() which can be used to write before the destination buffer leading to a buffer underflow and potential code execution.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-1000001",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-1000001",
+    "NamespaceName": "debian:9",
+    "Description": "In glibc 2.26 and earlier there is confusion in the usage of getcwd() by realpath() which can be used to write before the destination buffer leading to a buffer underflow and potential code execution.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-1000001",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-1000001",
+    "NamespaceName": "debian:9",
+    "Description": "In glibc 2.26 and earlier there is confusion in the usage of getcwd() by realpath() which can be used to write before the destination buffer leading to a buffer underflow and potential code execution.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-1000001",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-1000001",
+    "NamespaceName": "debian:9",
+    "Description": "In glibc 2.26 and earlier there is confusion in the usage of getcwd() by realpath() which can be used to write before the destination buffer leading to a buffer underflow and potential code execution.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-1000001",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-1000001",
+    "NamespaceName": "debian:9",
+    "Description": "In glibc 2.26 and earlier there is confusion in the usage of getcwd() by realpath() which can be used to write before the destination buffer leading to a buffer underflow and potential code execution.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-1000001",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-1000001",
+    "NamespaceName": "debian:9",
+    "Description": "In glibc 2.26 and earlier there is confusion in the usage of getcwd() by realpath() which can be used to write before the destination buffer leading to a buffer underflow and potential code execution.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-1000001",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-1000001",
+    "NamespaceName": "debian:9",
+    "Description": "In glibc 2.26 and earlier there is confusion in the usage of getcwd() by realpath() which can be used to write before the destination buffer leading to a buffer underflow and potential code execution.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-1000001",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-1000001",
+    "NamespaceName": "debian:9",
+    "Description": "In glibc 2.26 and earlier there is confusion in the usage of getcwd() by realpath() which can be used to write before the destination buffer leading to a buffer underflow and potential code execution.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-1000001",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-1000001",
+    "NamespaceName": "debian:9",
+    "Description": "In glibc 2.26 and earlier there is confusion in the usage of getcwd() by realpath() which can be used to write before the destination buffer leading to a buffer underflow and potential code execution.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-1000001",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-1000001",
+    "NamespaceName": "debian:9",
+    "Description": "In glibc 2.26 and earlier there is confusion in the usage of getcwd() by realpath() which can be used to write before the destination buffer leading to a buffer underflow and potential code execution.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-1000001",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2005-2541",
+    "NamespaceName": "debian:9",
+    "Description": "Tar 1.15.1 does not properly warn the user when extracting setuid or setgid files, which may allow local users or remote attackers to gain privileges.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2005-2541",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2010-0928",
+    "NamespaceName": "debian:9",
+    "Description": "OpenSSL 0.9.8i on the Gaisler Research LEON3 SoC on the Xilinx Virtex-II Pro FPGA uses a Fixed Width Exponentiation (FWE) algorithm for certain signature calculations, and does not verify the signature before providing it to a caller, which makes it easier for physically proximate attackers to determine the private key via a modified supply voltage for the microprocessor, related to a \"fault-based attack.\"",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2010-0928",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2010-0928",
+    "NamespaceName": "debian:9",
+    "Description": "OpenSSL 0.9.8i on the Gaisler Research LEON3 SoC on the Xilinx Virtex-II Pro FPGA uses a Fixed Width Exponentiation (FWE) algorithm for certain signature calculations, and does not verify the signature before providing it to a caller, which makes it easier for physically proximate attackers to determine the private key via a modified supply voltage for the microprocessor, related to a \"fault-based attack.\"",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2010-0928",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-7169",
+    "NamespaceName": "debian:9",
+    "Description": "An issue was discovered in shadow 4.5. newgidmap (in shadow-utils) is setuid and allows an unprivileged user to be placed in a user namespace where setgroups(2) is permitted. This allows an attacker to remove themselves from a supplementary group, which may allow access to certain filesystem paths if the administrator has used \"group blacklisting\" (e.g., chmod g-rwx) to restrict access to paths. This flaw effectively reverts a security feature in the kernel (in particular, the /proc/self/setgroups knob) to prevent this sort of privilege escalation.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-7169",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2011-4116",
+    "NamespaceName": "debian:9",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2011-4116",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2017-18078",
+    "NamespaceName": "debian:9",
+    "Description": "systemd-tmpfiles in systemd before 237 attempts to support ownership/permission changes on hardlinked files even if the fs.protected_hardlinks sysctl is turned off, which allows local users to bypass intended access restrictions via vectors involving a hard link to a file for which the user lacks write access, as demonstrated by changing the ownership of the /etc/passwd file.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2017-18078",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2017-18078",
+    "NamespaceName": "debian:9",
+    "Description": "systemd-tmpfiles in systemd before 237 attempts to support ownership/permission changes on hardlinked files even if the fs.protected_hardlinks sysctl is turned off, which allows local users to bypass intended access restrictions via vectors involving a hard link to a file for which the user lacks write access, as demonstrated by changing the ownership of the /etc/passwd file.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2017-18078",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2017-18078",
+    "NamespaceName": "debian:9",
+    "Description": "systemd-tmpfiles in systemd before 237 attempts to support ownership/permission changes on hardlinked files even if the fs.protected_hardlinks sysctl is turned off, which allows local users to bypass intended access restrictions via vectors involving a hard link to a file for which the user lacks write access, as demonstrated by changing the ownership of the /etc/passwd file.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2017-18078",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-5360",
+    "NamespaceName": "debian:9",
+    "Description": "LibTIFF before 4.0.6 mishandles the reading of TIFF files, as demonstrated by a heap-based buffer over-read in the ReadTIFFImage function in coders/tiff.c in GraphicsMagick 1.3.27.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-5360",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-5360",
+    "NamespaceName": "debian:9",
+    "Description": "LibTIFF before 4.0.6 mishandles the reading of TIFF files, as demonstrated by a heap-based buffer over-read in the ReadTIFFImage function in coders/tiff.c in GraphicsMagick 1.3.27.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-5360",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-5360",
+    "NamespaceName": "debian:9",
+    "Description": "LibTIFF before 4.0.6 mishandles the reading of TIFF files, as demonstrated by a heap-based buffer over-read in the ReadTIFFImage function in coders/tiff.c in GraphicsMagick 1.3.27.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-5360",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-5360",
+    "NamespaceName": "debian:9",
+    "Description": "LibTIFF before 4.0.6 mishandles the reading of TIFF files, as demonstrated by a heap-based buffer over-read in the ReadTIFFImage function in coders/tiff.c in GraphicsMagick 1.3.27.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-5360",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-5360",
+    "NamespaceName": "debian:9",
+    "Description": "LibTIFF before 4.0.6 mishandles the reading of TIFF files, as demonstrated by a heap-based buffer over-read in the ReadTIFFImage function in coders/tiff.c in GraphicsMagick 1.3.27.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-5360",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-5360",
+    "NamespaceName": "debian:9",
+    "Description": "LibTIFF before 4.0.6 mishandles the reading of TIFF files, as demonstrated by a heap-based buffer over-read in the ReadTIFFImage function in coders/tiff.c in GraphicsMagick 1.3.27.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-5360",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-5360",
+    "NamespaceName": "debian:9",
+    "Description": "LibTIFF before 4.0.6 mishandles the reading of TIFF files, as demonstrated by a heap-based buffer over-read in the ReadTIFFImage function in coders/tiff.c in GraphicsMagick 1.3.27.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-5360",
+    "Severity": "Medium",
+    "featureName": ""
+  }
+]

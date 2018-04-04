@@ -38,6 +38,12 @@ type Vulnerability struct {
 	FeatureName   string                 `json:"featureName",omitempty`
 }
 
+type Feature struct {
+	Name            string          `json:"Name,omitempty"`
+	NamespaceName   string          `json:"NamespaceName,omitempty"`
+	Version         string          `json:"Version,omitempty"`
+}
+
 func New(url string)  {
 	
 }

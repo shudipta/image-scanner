@@ -1,0 +1,161 @@
+[
+  {
+    "Name": "CVE-2018-7169",
+    "NamespaceName": "debian:9",
+    "Description": "An issue was discovered in shadow 4.5. newgidmap (in shadow-utils) is setuid and allows an unprivileged user to be placed in a user namespace where setgroups(2) is permitted. This allows an attacker to remove themselves from a supplementary group, which may allow access to certain filesystem paths if the administrator has used \"group blacklisting\" (e.g., chmod g-rwx) to restrict access to paths. This flaw effectively reverts a security feature in the kernel (in particular, the /proc/self/setgroups knob) to prevent this sort of privilege escalation.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-7169",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2007-6755",
+    "NamespaceName": "debian:9",
+    "Description": "The NIST SP 800-90A default statement of the Dual Elliptic Curve Deterministic Random Bit Generation (Dual_EC_DRBG) algorithm contains point Q constants with a possible relationship to certain \"skeleton key\" values, which might allow context-dependent attackers to defeat cryptographic protection mechanisms by leveraging knowledge of those values.  NOTE: this is a preliminary CVE for Dual_EC_DRBG; future research may provide additional details about point Q and associated attacks, and could potentially lead to a RECAST or REJECT of this CVE.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2007-6755",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2017-8804",
+    "NamespaceName": "debian:9",
+    "Description": "The xdr_bytes and xdr_string functions in the GNU C Library (aka glibc or libc6) 2.25 mishandle failures of buffer deserialization, which allows remote attackers to cause a denial of service (virtual memory allocation, or memory consumption if an overcommit setting is not used) via a crafted UDP packet to port 111, a related issue to CVE-2017-8779.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2017-8804",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2017-8804",
+    "NamespaceName": "debian:9",
+    "Description": "The xdr_bytes and xdr_string functions in the GNU C Library (aka glibc or libc6) 2.25 mishandle failures of buffer deserialization, which allows remote attackers to cause a denial of service (virtual memory allocation, or memory consumption if an overcommit setting is not used) via a crafted UDP packet to port 111, a related issue to CVE-2017-8779.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2017-8804",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2017-8804",
+    "NamespaceName": "debian:9",
+    "Description": "The xdr_bytes and xdr_string functions in the GNU C Library (aka glibc or libc6) 2.25 mishandle failures of buffer deserialization, which allows remote attackers to cause a denial of service (virtual memory allocation, or memory consumption if an overcommit setting is not used) via a crafted UDP packet to port 111, a related issue to CVE-2017-8779.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2017-8804",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2017-8804",
+    "NamespaceName": "debian:9",
+    "Description": "The xdr_bytes and xdr_string functions in the GNU C Library (aka glibc or libc6) 2.25 mishandle failures of buffer deserialization, which allows remote attackers to cause a denial of service (virtual memory allocation, or memory consumption if an overcommit setting is not used) via a crafted UDP packet to port 111, a related issue to CVE-2017-8779.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2017-8804",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2017-8804",
+    "NamespaceName": "debian:9",
+    "Description": "The xdr_bytes and xdr_string functions in the GNU C Library (aka glibc or libc6) 2.25 mishandle failures of buffer deserialization, which allows remote attackers to cause a denial of service (virtual memory allocation, or memory consumption if an overcommit setting is not used) via a crafted UDP packet to port 111, a related issue to CVE-2017-8779.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2017-8804",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2017-8804",
+    "NamespaceName": "debian:9",
+    "Description": "The xdr_bytes and xdr_string functions in the GNU C Library (aka glibc or libc6) 2.25 mishandle failures of buffer deserialization, which allows remote attackers to cause a denial of service (virtual memory allocation, or memory consumption if an overcommit setting is not used) via a crafted UDP packet to port 111, a related issue to CVE-2017-8779.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2017-8804",
+    "Severity": "High",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2013-0340",
+    "NamespaceName": "debian:9",
+    "Description": "expat 2.1.0 and earlier does not properly handle entities expansion unless an application developer uses the XML_SetEntityDeclHandler function, which allows remote attackers to cause a denial of service (resource consumption), send HTTP requests to intranet servers, or read arbitrary files via a crafted XML document, aka an XML External Entity (XXE) issue.  NOTE: it could be argued that because expat already provides the ability to disable external entity expansion, the responsibility for resolving this issue lies with application developers; according to this argument, this entry should be REJECTed, and each affected application would need its own CVE.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2013-0340",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2011-4116",
+    "NamespaceName": "debian:9",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2011-4116",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2017-5969",
+    "NamespaceName": "debian:9",
+    "Description": "** DISPUTED ** libxml2 2.9.4, when used in recover mode, allows remote attackers to cause a denial of service (NULL pointer dereference) via a crafted XML document.  NOTE: The maintainer states \"I would disagree of a CVE with the Recover parsing option which should only be used for manual recovery at least for XML parser.\"",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2017-5969",
+    "Severity": "Low",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2017-1000082",
+    "NamespaceName": "debian:9",
+    "Description": "systemd v233 and earlier fails to safely parse usernames starting with a numeric digit (e.g. \"0day\"), running the service in question with root privileges rather than the user intended.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2017-1000082",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2017-1000082",
+    "NamespaceName": "debian:9",
+    "Description": "systemd v233 and earlier fails to safely parse usernames starting with a numeric digit (e.g. \"0day\"), running the service in question with root privileges rather than the user intended.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2017-1000082",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2016-9085",
+    "NamespaceName": "debian:9",
+    "Description": "Multiple integer overflows in libwebp allows attackers to have unspecified impact via unknown vectors.",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2016-9085",
+    "Severity": "Negligible",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-7456",
+    "NamespaceName": "debian:9",
+    "Description": "A NULL Pointer Dereference occurs in the function TIFFPrintDirectory in tif_print.c in LibTIFF 4.0.9 when using the tiffinfo tool to print crafted TIFF information, a different vulnerability than CVE-2017-18013. (This affects an earlier part of the TIFFPrintDirectory function that was not addressed by the CVE-2017-18013 patch.)",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-7456",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-7456",
+    "NamespaceName": "debian:9",
+    "Description": "A NULL Pointer Dereference occurs in the function TIFFPrintDirectory in tif_print.c in LibTIFF 4.0.9 when using the tiffinfo tool to print crafted TIFF information, a different vulnerability than CVE-2017-18013. (This affects an earlier part of the TIFFPrintDirectory function that was not addressed by the CVE-2017-18013 patch.)",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-7456",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-7456",
+    "NamespaceName": "debian:9",
+    "Description": "A NULL Pointer Dereference occurs in the function TIFFPrintDirectory in tif_print.c in LibTIFF 4.0.9 when using the tiffinfo tool to print crafted TIFF information, a different vulnerability than CVE-2017-18013. (This affects an earlier part of the TIFFPrintDirectory function that was not addressed by the CVE-2017-18013 patch.)",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-7456",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-7456",
+    "NamespaceName": "debian:9",
+    "Description": "A NULL Pointer Dereference occurs in the function TIFFPrintDirectory in tif_print.c in LibTIFF 4.0.9 when using the tiffinfo tool to print crafted TIFF information, a different vulnerability than CVE-2017-18013. (This affects an earlier part of the TIFFPrintDirectory function that was not addressed by the CVE-2017-18013 patch.)",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-7456",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-7456",
+    "NamespaceName": "debian:9",
+    "Description": "A NULL Pointer Dereference occurs in the function TIFFPrintDirectory in tif_print.c in LibTIFF 4.0.9 when using the tiffinfo tool to print crafted TIFF information, a different vulnerability than CVE-2017-18013. (This affects an earlier part of the TIFFPrintDirectory function that was not addressed by the CVE-2017-18013 patch.)",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-7456",
+    "Severity": "Medium",
+    "featureName": ""
+  },
+  {
+    "Name": "CVE-2018-7456",
+    "NamespaceName": "debian:9",
+    "Description": "A NULL Pointer Dereference occurs in the function TIFFPrintDirectory in tif_print.c in LibTIFF 4.0.9 when using the tiffinfo tool to print crafted TIFF information, a different vulnerability than CVE-2017-18013. (This affects an earlier part of the TIFFPrintDirectory function that was not addressed by the CVE-2017-18013 patch.)",
+    "Link": "https://security-tracker.debian.org/tracker/CVE-2018-7456",
+    "Severity": "Medium",
+    "featureName": ""
+  }
+]
