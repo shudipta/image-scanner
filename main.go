@@ -233,7 +233,7 @@ func GetFeaturs(resp *http.Response, err error) []*clair.Feature {
 	return fs
 }
 
-func parseImageName(image string) (string, string, string, error) {
+func parseImageName(image string) (string, string, string) {
 	registry := "registry-1.docker.io"
 	tag := "latest"
 	var nameParts, tagParts []string
@@ -295,7 +295,7 @@ func parseImageName(image string) (string, string, string, error) {
 
 	registry = fmt.Sprintf("https://%s", registry)
 
-	return registry, name, tag, nil
+	return registry, name, tag
 }
 
 var imageName, user, pass string
@@ -319,11 +319,13 @@ func main() {
 		Timeout: time.Minute,
 	}
 	fmt.Println("========", imageName, "========")
-	registry, repo, tag, err := parseImageName(imageName)
+	registry, repo, tag := parseImageName(imageName)
+	//registry := "https://registry-1.docker.io"
+	//repo, tag, _, err := parsers.ParseImageName(imageName)
 	fmt.Println("=======", registry, "=====", repo, "=======", tag, "=======")
-	if err != nil {
-		log.Fatal(err)
-	}
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 	if strings.HasPrefix(repo, "docker.io/") {
 		repo = repo[10:]
 	}
@@ -338,9 +340,9 @@ func main() {
 		Logf: reg.Quiet,
 	}
 	//hub, err := reg.New(registry, user, pass)
-	if err != nil {
-		log.Fatalf("couldn't connect to the registry: %v", err)
-	}
+	//if err != nil {
+	//	log.Fatalf("couldn't connect to the registry: %v", err)
+	//}
 
 	fmt.Println("======= getting manifests =======")
 	manifest, err := hub.ManifestV2(repo, tag)
@@ -361,13 +363,20 @@ func main() {
 	}
 
 	oneliners.PrettyJson(img,"img")
-	var img2 Canonical2
 	if img.Layers == nil {
+		var img2 Canonical2
 		if err := json.NewDecoder(bytes.NewReader(canonical)).Decode(&img2); err != nil {
 			log.Fatalf("\nerror in decoding canonical into Image2:\n%s\n%v\n",
 				"--------------------------------------------------", err)
 		}
-
+		//imageManifest.Layers = make([]layer, len(img.FsLayers))
+		//// in schemaVersion 1 layers are in reverse order, so we save them in the same order as v2
+		//// base layer is the first
+		//for i := range img.FsLayers {
+		//	imageManifest.Layers[len(img.FsLayers)-1-i].Digest = img.FsLayers[i].BlobSum
+		//}
+		//imageManifest.SchemaVersion = img.SchemaVersion
+		img.Layers = make([]layer, len(img2.FsLayers))
 		for i, l := range img2.FsLayers {
 			img.Layers[len(img2.FsLayers) - 1 - i].Digest = l.BlobSum
 		}
