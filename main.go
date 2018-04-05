@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"log"
+	reg "github.com/heroku/docker-registry-client/registry"
 	"bytes"
 	"encoding/json"
 	"net/http"
@@ -47,74 +48,8 @@ func keepFootStep(f string, a ...interface{}) {
 	fmt.Fprintf(os.Stderr, s, a...)
 }
 
-func GetManifests(registry, repo, tag string, client http.Client) (string, Canonical) {
-	bearertoken := ""
-	url := fmt.Sprintf("%s/%s/manifests/%s", registry, repo, tag)
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		log.Fatalf("error in creating request for manifests: \n%s\n%v\n",
-			"---------------------------------------", err)
-	}
-	req.Header.Set("Accept", "application/vnd.docker.distribution.manifest.v2+json")
-	if user != "" {
-		req.SetBasicAuth(user, pass)
-		bearertoken = req.Header.Get("Authorization")
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatalf("\nerror in getting response for manifests request:\n%s\n%v\n",
-			"--------------------------------------------------", err)
-	} else if resp.StatusCode == 401 {
-		bearertoken = GetBearerToken(
-			RequestBearerToken(client, resp),
-		)
-	}
-	req.Header.Set("Authorization", bearertoken)
-
-	resp, err = client.Do(req)
-	defer resp.Body.Close()
-
-	var imageManifest Canonical
-	if err := json.NewDecoder(resp.Body).Decode(&imageManifest); err != nil {
-		log.Fatalf("\nerror in decoding canonical into Image:\n%s\n%v\n",
-			"--------------------------------------------------", err)
-	}
-
-	return bearertoken, imageManifest
-}
-
-func GetAuthInfoParts(authInfo string) (string, string, string, string) {
-	parts := strings.Split(authInfo, " ")
-	tokenType := parts[0]
-	parts = strings.Split(parts[1], ",")
-	var realm, service, scope string
-	for _, p := range parts {
-		subParts := strings.Split(p, "=")
-		val := subParts[1][1:len(subParts[1]) - 1]
-		switch subParts[0] {
-		case "realm":
-			realm = "realm=" + val
-		case "service":
-			service = "service=" + val
-		case "scope":
-			scope = "scope=" + val
-		}
-	}
-
-	return tokenType, realm, service, scope
-}
-
-//Bearer realm="https://auth.docker.io/token",service="registry.docker.io",scope="repository:library/nginx:pull"
-func RequestBearerToken(client http.Client, resp *http.Response) (string, *http.Response, error) {
-	authInfo := resp.Header.Get("Www-Authenticate")
-	if authInfo == ""{
-		log.Fatalf("can't get authInfo")
-	}
-	tokenType, realm, service, scope := GetAuthInfoParts(authInfo)
-	fmt.Println("....tokenType=", tokenType, "....realm=", realm, "....service=", service, "....scope=", scope)
-	url := realm + "?" + service + "&" + scope
-	//url := "h" + repo +":pull&account=" + user
+func RequestBearerToken(repo, user, pass string) *http.Request {
+	url := "https://auth.docker.io/token?service=registry.docker.io&scope=repository:" + repo +":pull&account=" + user
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Fatalf("\nerror in creating request for Bearer Token:\n%s\n%v\n",
@@ -124,16 +59,15 @@ func RequestBearerToken(client http.Client, resp *http.Response) (string, *http.
 		req.SetBasicAuth(user, pass)
 	}
 
-	resp1, err := client.Do(req)
-
-	return tokenType, resp1, err
+	return req
 }
 
-func GetBearerToken(tokenType string, resp *http.Response, err error) string {
+func GetBearerToken(resp *http.Response, err error) string {
 	if err != nil {
 		log.Fatalf("\nerror in getting response for Bearer Token request:\n%s\n%v\n",
 			"--------------------------------------------------", err)
 	}
+
 	defer resp.Body.Close()
 
 	var token struct {
@@ -144,8 +78,7 @@ func GetBearerToken(tokenType string, resp *http.Response, err error) string {
 		log.Fatal("\nerror in decoding Bearer Token response Body:\n%s\n%v\n",
 			"--------------------------------------------------", err)
 	}
-
-	return fmt.Sprintf("%s %s",tokenType, token.Token)
+	return fmt.Sprintf("Bearer %s", token.Token)
 }
 
 func getAddr() (string, error) {
@@ -308,6 +241,7 @@ func parseImageName(image string) (string, string, string, error) {
 			switch state {
 			case 0:
 				if strings.Contains(part, ".") {
+					// it's registry, let's check what's next =port of image name
 					registry = part
 					if c == ':' {
 						state = 1
@@ -350,7 +284,7 @@ func parseImageName(image string) (string, string, string, error) {
 		tag = strings.Join(tagParts, ":")
 	}
 
-	registry = fmt.Sprintf("https://%s/v2", registry)
+	registry = fmt.Sprintf("https://%s", registry)
 
 	return registry, name, tag, nil
 }
@@ -377,37 +311,37 @@ func main() {
 	}
 	fmt.Println("========", imageName, "========")
 	registry, repo, tag, err := parseImageName(imageName)
-	fmt.Println("=========", registry, "=====", repo, "=======", tag, "=======")
+	fmt.Println("=======", registry, "=====", repo, "=======", tag, "=======")
 	if err != nil {
 		log.Fatal(err)
 	}
-	//if strings.HasPrefix(repo, "docker.io/") {
-	//	repo = repo[10:]
-	//}
-	token, img := GetManifests(registry, repo, tag, client)
-	////registry := "https://registry-1.docker.io/v2"
-	//
-	////hub, err := reg.New("https://registry-1.docker.io/", user, pass)
-	//hub, err := reg.New(registry, user, pass)
-	//if err != nil {
-	//	log.Fatalf("couldn't connect to the registry %v: ", err)
-	//}
-	//
-	//manifest, err := hub.ManifestV2(repo, tag)
-	//if err != nil {
-	//	log.Fatalf("couldn't get the manifest: %v", err)
-	//}
-	//canonical, err := manifest.MarshalJSON()
-	//if err != nil {
-	//	log.Fatalf("couldn't get the manifest.canonical: %v", err)
-	//}
-	//can := bytes.NewReader(canonical)
-	//
-	//var img Canonical
-	//if err := json.NewDecoder(can).Decode(&img); err != nil {
-	//	log.Fatalf("\nerror in decoding canonical into Image:\n%s\n%v\n",
-	//		"--------------------------------------------------", err)
-	//}
+	if strings.HasPrefix(repo, "docker.io/") {
+		repo = repo[10:]
+	}
+	//registry := "https://registry-1.docker.io/v2"
+
+	//hub, err := reg.New("https://registry-1.docker.io/", user, pass)
+	hub, err := reg.New(registry, user, pass)
+	if err != nil {
+		log.Fatalf("couldn't connect to the registry: %v", err)
+	}
+
+	fmt.Println("======= getting manifests =======")
+	manifest, err := hub.ManifestV2(repo, tag)
+	if err != nil {
+		log.Fatalf("couldn't get the manifest: %v", err)
+	}
+	canonical, err := manifest.MarshalJSON()
+	if err != nil {
+		log.Fatalf("couldn't get the manifest.canonical: %v", err)
+	}
+	can := bytes.NewReader(canonical)
+
+	var img Canonical
+	if err := json.NewDecoder(can).Decode(&img); err != nil {
+		log.Fatalf("\nerror in decoding canonical into Image:\n%s\n%v\n",
+			"--------------------------------------------------", err)
+	}
 	oneliners.PrettyJson(img,"img")
 
 	var ls []layer
@@ -431,11 +365,11 @@ func main() {
 	}
 	lsLen := len(ls)
 	var parent string
-	//var token string = GetBearerToken(
-	//	client.Do(
-	//		RequestBearerToken(registry, repo, user, pass),
-	//	),
-	//)
+	var token string = GetBearerToken(
+		client.Do(
+			RequestBearerToken(repo, user, pass),
+		),
+	)
 	serverAddr, err := getAddr()
 	if err != nil {
 		log.Fatalf("error in getting ClairAddr: %v", err)
@@ -479,15 +413,15 @@ func main() {
 		//
 		//	return
 		//}
+		resp, err := clairClient.Do(
+			RequestVulnerabilities(digest[7:] + ls[i].Digest[7:], serverAddr),
+		)
+
+		//fs := GetFeaturs(resp, err)
+		vuls := GetVulnerabilities(resp, err)
+
+		oneliners.PrettyJson(vuls)
 	}
 
-	resp, err := clairClient.Do(
-		RequestVulnerabilities(digest[7:] + ls[lsLen - 1].Digest[7:], serverAddr),
-	)
-
-	//fs := GetFeaturs(resp, err)
-	vuls := GetVulnerabilities(resp, err)
-
-	oneliners.PrettyJson(vuls)
 	//oneliners.PrettyJson(fs)
 }
