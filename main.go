@@ -43,6 +43,15 @@ type Canonical struct {
 	Layers        []layer
 }
 
+type Canonical2 struct {
+	SchemaVersion int
+	FsLayers        []layer2
+}
+
+type layer2 struct {
+	BlobSum string
+}
+
 func keepFootStep(f string, a ...interface{}) {
 	s := fmt.Sprintf("%s\n", f)
 	fmt.Fprintf(os.Stderr, s, a...)
@@ -321,7 +330,14 @@ func main() {
 	//registry := "https://registry-1.docker.io/v2"
 
 	//hub, err := reg.New("https://registry-1.docker.io/", user, pass)
-	hub, err := reg.New(registry, user, pass)
+	hub := &reg.Registry{
+		URL: registry,
+		Client: &http.Client{
+			Transport: reg.WrapTransport(http.DefaultTransport, registry, user, pass),
+		},
+		Logf: reg.Quiet,
+	}
+	//hub, err := reg.New(registry, user, pass)
 	if err != nil {
 		log.Fatalf("couldn't connect to the registry: %v", err)
 	}
@@ -332,6 +348,7 @@ func main() {
 		log.Fatalf("couldn't get the manifest: %v", err)
 	}
 	canonical, err := manifest.MarshalJSON()
+	oneliners.PrettyJson((canonical))
 	if err != nil {
 		log.Fatalf("couldn't get the manifest.canonical: %v", err)
 	}
@@ -342,7 +359,20 @@ func main() {
 		log.Fatalf("\nerror in decoding canonical into Image:\n%s\n%v\n",
 			"--------------------------------------------------", err)
 	}
+
 	oneliners.PrettyJson(img,"img")
+	var img2 Canonical2
+	if img.Layers == nil {
+		if err := json.NewDecoder(bytes.NewReader(canonical)).Decode(&img2); err != nil {
+			log.Fatalf("\nerror in decoding canonical into Image2:\n%s\n%v\n",
+				"--------------------------------------------------", err)
+		}
+
+		for i, l := range img2.FsLayers {
+			img.Layers[len(img2.FsLayers) - 1 - i].Digest = l.BlobSum
+		}
+		img.SchemaVersion = img2.SchemaVersion
+	}
 
 	var ls []layer
 	for _, l := range img.Layers {
@@ -377,12 +407,20 @@ func main() {
 		serverAddr = "http://clairsvc:30060"
 	}
 
+	hashPart := func(dig string) string {
+		if len(dig) < 7 {
+			return ""
+		}
+
+		return dig[7:]
+	}
+
 	for i := 0; i < lsLen; i++ {
 		//if i > 0 {
 		//	parent = digest[7:] + ls[i - 1].Digest[7:]
 		//}
 		l := &clair.LayerType{
-			Name: digest[7:] + ls[i].Digest[7:],
+			Name: hashPart(digest) + hashPart(ls[i].Digest),
 			Path: fmt.Sprintf("%s/%s/%s/%s", registry, repo, "blobs", ls[i].Digest),
 			ParentName: parent,
 			Format: "Docker",
@@ -414,7 +452,7 @@ func main() {
 		//	return
 		//}
 		resp, err := clairClient.Do(
-			RequestVulnerabilities(digest[7:] + ls[i].Digest[7:], serverAddr),
+			RequestVulnerabilities(hashPart(digest) + hashPart(ls[i].Digest), serverAddr),
 		)
 
 		//fs := GetFeaturs(resp, err)
