@@ -1,6 +1,12 @@
 hash: a880096e0059f26822ccf91abbc56d8228ba905c52c850da3d8bfb9f0b2fa045
-updated: 2018-03-22T11:10:04.781130375+06:00
+updated: 2018-04-17T15:03:09.67003106+06:00
 imports:
+- name: github.com/coreos/clair
+  version: a5b3e747a0bffd13929bcbea5bd1d6495cf9f64b
+  subpackages:
+  - api/v3/clairpb
+  - database
+  - ext/versionfmt
 - name: github.com/docker/distribution
   version: edc3ab29cdff8694dd6feb85cfeb4b5f1b38ed9c
   subpackages:
@@ -37,10 +43,14 @@ imports:
 - name: github.com/golang/protobuf
   version: 1643683e1b54a9e88ad26d98f81400c8c9d9f4f9
   subpackages:
+  - jsonpb
   - proto
+  - protoc-gen-go/descriptor
   - ptypes
   - ptypes/any
   - ptypes/duration
+  - ptypes/empty
+  - ptypes/struct
   - ptypes/timestamp
 - name: github.com/google/btree
   version: 7d79101e329e5a3adf994758c578dab82b90c017
@@ -60,6 +70,12 @@ imports:
   version: 787624de3eb7bd915c329cba748687a3b22666a6
   subpackages:
   - diskcache
+- name: github.com/grpc-ecosystem/grpc-gateway
+  version: 07f5e79768022f9a3265235f0db4ac8c3f675fec
+  subpackages:
+  - runtime
+  - runtime/internal
+  - utilities
 - name: github.com/heroku/docker-registry-client
   version: fd2fe803496897db70c236ee244f41487ea92ec2
   subpackages:
@@ -89,7 +105,7 @@ imports:
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/sirupsen/logrus
-  version: 3ec0642a7fb6488f65b06f9040adc67e3990296a
+  version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
 - name: github.com/spf13/pflag
   version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
 - name: github.com/tamalsaha/go-oneliners
@@ -105,7 +121,9 @@ imports:
   - http2
   - http2/hpack
   - idna
+  - internal/timeseries
   - lex/httplex
+  - trace
 - name: golang.org/x/sys
   version: 8dbc5d05d6edcc104950cc299a1ce6641235bc86
   subpackages:
@@ -125,6 +143,36 @@ imports:
   - unicode/bidi
   - unicode/norm
   - width
+- name: google.golang.org/genproto
+  version: 09f6ed296fc66555a25fe4ce95173148778dfa85
+  subpackages:
+  - googleapis/api/annotations
+  - googleapis/rpc/status
+- name: google.golang.org/grpc
+  version: d11072e7ca9811b1100b80ca0269ac831f06d024
+  subpackages:
+  - balancer
+  - balancer/base
+  - balancer/roundrobin
+  - codes
+  - connectivity
+  - credentials
+  - encoding
+  - encoding/proto
+  - grpclb/grpc_lb_v1/messages
+  - grpclog
+  - internal
+  - keepalive
+  - metadata
+  - naming
+  - peer
+  - resolver
+  - resolver/dns
+  - resolver/passthrough
+  - stats
+  - status
+  - tap
+  - transport
 - name: gopkg.in/inf.v0
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: gopkg.in/yaml.v2
@@ -253,8 +301,4 @@ imports:
   subpackages:
   - pkg/common
   - pkg/util/proto
-- name: k8s.io/kubernetes
-  version: 925c127ec6b946659ad0fd596fa959be43f0cc05
-  subpackages:
-  - pkg/util/parsers
 testImports: []
