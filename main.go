@@ -17,17 +17,10 @@ import (
 	//"os/exec"
 	"strings"
 
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
-
-	"path/filepath"
-	"strconv"
-
 	"github.com/coreos/clair/api/v3/clairpb"
 	"google.golang.org/grpc"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/util/homedir"
 	"context"
+	"k8s.io/kubernetes/pkg/util/parsers"
 )
 
 type config struct {
@@ -96,89 +89,6 @@ func GetBearerToken(resp *http.Response, err error) string {
 	return fmt.Sprintf("Bearer %s", token.Token)
 }
 
-func getAddr() (string, error) {
-	var host, port string
-	kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
-
-	cfg, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-	if err != nil {
-		return "", err
-	}
-	kubeClient, err := kubernetes.NewForConfig(cfg)
-	if err != nil {
-		return "", err
-	}
-
-	pods, err := kubeClient.CoreV1().Pods("default").List(metav1.ListOptions{})
-	if err != nil {
-		return "", err
-	}
-	for _, pod := range pods.Items {
-		if strings.HasPrefix(pod.Name, "clair") {
-			host = pod.Status.HostIP
-		}
-	}
-
-	clairSvc, err := kubeClient.CoreV1().Services("default").Get("clairsvc", metav1.GetOptions{})
-	if err != nil {
-		return "", err
-	}
-	for _, p := range clairSvc.Spec.Ports {
-		if p.TargetPort.IntVal == 6060 {
-			port = strconv.Itoa(int(p.NodePort))
-			break
-		}
-	}
-
-	if host != "" && port != "" {
-		return "http://" + host + ":" + port, nil
-	}
-
-	return "", fmt.Errorf("clair isn't running in minikube")
-}
-
-func RequestSendingLayer(l *clair.LayerType, serverAddr string) *http.Request {
-	//oneliners.PrettyJson(l)
-
-	var layerApi struct {
-		Layer *clair.LayerType
-	}
-	layerApi.Layer = l
-	reqBody, err := json.Marshal(layerApi)
-	if err != nil {
-		log.Fatalf("\nerror in converting request body for sending layer request:\n%s\n%v\n",
-			"--------------------------------------------------", err)
-	}
-	url := serverAddr + "/v1/layers"
-	//url = "http://192.168.99.100:30060/v1/layers"
-	fmt.Println("==============", url)
-	//url = "http://192.168.99.100:30060/v1/layers"
-
-	req, err := http.NewRequest("POST", url, bytes.NewReader(reqBody))
-	if err != nil {
-		log.Fatalln("\nerror in creating request for sending layer:\n%s\n%v\n",
-			"--------------------------------------------------", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	return req
-}
-
-func RequestVulnerabilities(hashNameOfImage string, serverAddr string) *http.Request {
-	url := serverAddr + "/v1/layers/" + hashNameOfImage + "?vulnerabilities"
-	//url = "http://192.168.99.100:30060/v1/layers/" + hashNameOfImage + "?vulnerabilities"
-	fmt.Println("==============", url)
-	//url = "http://192.168.99.100:30060/v1/layers/" + hashNameOfImage + "?vulnerabilities"
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		//continue
-		log.Fatalf("\nerror in creating request for getting vulnerabilities:\n%s\n%v\n",
-			"--------------------------------------------------", err)
-	}
-
-	return req
-}
-
 func GetVulnerabilities(res *clairpb.GetAncestryResponse) []*clair.Vulnerability {
 	//return nil
 	var vuls []*clair.Vulnerability
@@ -212,69 +122,29 @@ func GetFeaturs(res *clairpb.GetAncestryResponse) []*clair.Feature {
 	return fs
 }
 
-func parseImageName(image string) (string, string, string) {
-	registry := "registry-1.docker.io"
-	tag := "latest"
-	var nameParts, tagParts []string
-	var name, port string
-	state := 0
-	start := 0
-	for i, c := range image {
-		if c == ':' || c == '/' || c == '@' || i == len(image)-1 {
-			if i == len(image)-1 {
-				i += 1
-			}
-			part := image[start:i]
-			start = i + 1
-			switch state {
-			case 0:
-				if strings.Contains(part, ".") {
-					// it's registry, let's check what's next =port of image name
-					registry = part
-					if c == ':' {
-						state = 1
-					} else {
-						state = 2
-					}
-				} else {
-					if c == '/' {
-						start = 0
-						state = 2
-					} else {
-						state = 3
-						name = fmt.Sprintf("library/%s", part)
-					}
-				}
-			case 3:
-				tag = ""
-				tagParts = append(tagParts, part)
-			case 1:
-				state = 2
-				port = part
-			case 2:
-				if c == ':' || c == '@' {
-					state = 3
-				}
-				nameParts = append(nameParts, part)
-			}
+func parseImageName(imageName, registryUrl string) (string, string, string, string, error) {
+	repo, tag, digest, err := parsers.ParseImageName(imageName)
+	if err != nil {
+		return "", "", "", "", err
+	}
+	// the repo part should have registry url as prefix followed by a '/'
+	// for example, if image name = "ubuntu" then
+	//					repo = "docker.io/library/ubuntu", tag = "latest", digest = ""
+	// 				if image name = "k8s.gcr.io/kubernetes-dashboard-amd64:v1.8.1" then
+	//					repo = "k8s.gcr.io/kubernetes-dashboard-amd64", tag = "v1.8.1", digest = ""
+	// here, for docker registry the api url is "https://registry-1.docker.io"
+	// and for other registry the url is "https://k8s.gcr.io"(gcr) or "https://quay.io"(quay)
+	parts := strings.Split(repo, "/")
+	if registryUrl == "" {
+		if parts[0] == "docker.io" {
+			registryUrl = "https://registry-1." + parts[0]
+		} else {
+			registryUrl = "https://" + parts[0]
 		}
 	}
+	repo = strings.Join(parts[1:], "/")
 
-	if port != "" {
-		registry = fmt.Sprintf("%s:%s", registry, port)
-	}
-
-	if name == "" {
-		name = strings.Join(nameParts, "/")
-	}
-
-	if tag == "" {
-		tag = strings.Join(tagParts, ":")
-	}
-
-	registry = fmt.Sprintf("https://%s", registry)
-
-	return registry, name, tag
+	return registryUrl, repo, tag, digest, err
 }
 
 func hashPart(digest string) string {
@@ -367,19 +237,14 @@ func main() {
 	flag.Parse()
 
 	fmt.Println("========", imageName, "========")
-	registry, repo, tag := parseImageName(imageName)
+	fmt.Println("========", user, "========")
+	fmt.Println("========", clairAddress, "========")
+	registry, repo, tag, _, err := parseImageName(imageName, "")
 	//registry := "https://registry-1.docker.io"
-	//repo, tag, _, err := parsers.ParseImageName(imageName)
 	fmt.Println("=======", registry, "=====", repo, "=======", tag, "=======")
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
 	if strings.HasPrefix(repo, "docker.io/") {
 		repo = repo[10:]
 	}
-	//registry := "https://registry-1.docker.io/v2"
-
-	//hub, err := reg.New("https://registry-1.docker.io/", user, pass)
 	hub := &reg.Registry{
 		URL: registry,
 		Client: &http.Client{
@@ -387,10 +252,6 @@ func main() {
 		},
 		Logf: reg.Quiet,
 	}
-	//hub, err := reg.New(registry, user, pass)
-	//if err != nil {
-	//	log.Fatalf("couldn't connect to the registry: %v", err)
-	//}
 
 	fmt.Println("======= getting manifests =======")
 	manifest, err := hub.ManifestV2(repo, tag)
@@ -421,13 +282,6 @@ func main() {
 			img.Layers[len(img2.FsLayers)-1-i].Digest = l.BlobSum
 		}
 		img.SchemaVersion = img2.SchemaVersion
-	}
-
-	serverAddr, err := getAddr()
-	if err != nil {
-		log.Fatalf("error in getting ClairAddr: %v", err)
-	} else if serverAddr == "" {
-		serverAddr = "http://clairsvc:30060"
 	}
 
 	if len(img.Layers) == 0 {
