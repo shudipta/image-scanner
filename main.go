@@ -228,7 +228,7 @@ func init() {
 	flag.StringVar(&imageName, "image", "", "name of the image (for private image <user>/<name>)")
 	flag.StringVar(&user, "user", "", "username of private docker repo")
 	flag.StringVar(&pass, "pass", "", "password of private docker repo")
-	flag.StringVar(&clairAddress, "clairAdress", "192.168.99.100:30060", "password of private docker repo")
+	flag.StringVar(&clairAddress, "clairAdress", "http://192.168.99.100:30060", "password of private docker repo")
 }
 
 func main() {
