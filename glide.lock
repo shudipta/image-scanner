@@ -1,5 +1,5 @@
 hash: b03f99ff9adc4541d6c877de75d8e1f757f28b0153ae95219a1a13a09de8b3f8
-updated: 2018-04-17T15:36:29.278470019+06:00
+updated: 2018-04-17T16:24:43.878470064+06:00
 imports:
 - name: github.com/coreos/clair
   version: a5b3e747a0bffd13929bcbea5bd1d6495cf9f64b
