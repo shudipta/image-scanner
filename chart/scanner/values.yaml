@@ -3,10 +3,10 @@
 # Declare variables to be passed into your templates.
 replicaCount: 1
 # Docker registry containing Scanner images
-operator:
+scanner:
   registry: soter
   repository: scanner
-  tag: 0.1.0
+  tag: canary
 ## Optionally specify an array of imagePullSecrets.
 ## Secrets must be manually created in the namespace.
 ## ref: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod

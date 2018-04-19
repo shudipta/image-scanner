@@ -96,7 +96,7 @@ func (c *ScannerConfig) Complete() CompletedConfig {
 
 // New returns a new instance of ScannerServer from the given config.
 func (c completedConfig) New() (*ScannerServer, error) {
-	genericServer, err := c.GenericConfig.New("scanner-apiserver", genericapiserver.EmptyDelegate) // completion is done in Complete, no need for a second time
+	genericServer, err := c.GenericConfig.New("soter-scanner", genericapiserver.EmptyDelegate) // completion is done in Complete, no need for a second time
 	if err != nil {
 		return nil, err
 	}
@@ -104,8 +104,15 @@ func (c completedConfig) New() (*ScannerServer, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	c.AddAdmissionHooks(ctrl)
+	c.ControllerConfig.AdmissionHooks = []hooks.AdmissionHook{
+		ctrl.NewDeploymentWebhook(),
+		ctrl.NewDaemonSetWebhook(),
+		ctrl.NewStatefulSetWebhook(),
+		ctrl.NewReplicationControllerWebhook(),
+		ctrl.NewReplicaSetWebhook(),
+		ctrl.NewJobWebhook(),
+		ctrl.NewCronJobWebhook(),
+	}
 
 	s := &ScannerServer{
 		GenericAPIServer: genericServer,
@@ -248,16 +255,4 @@ func admissionHooksByGroupThenVersion(admissionHooks ...hooks.AdmissionHook) map
 		group[gvr.Version] = append(group[gvr.Version], hook)
 	}
 	return ret
-}
-func (c *completedConfig) AddAdmissionHooks(ctrl *controller.ScannerController) error {
-	c.ControllerConfig.AdmissionHooks = []hooks.AdmissionHook{
-		ctrl.NewDeploymentWebhook(),
-		ctrl.NewDaemonSetWebhook(),
-		ctrl.NewStatefulSetWebhook(),
-		ctrl.NewReplicationControllerWebhook(),
-		ctrl.NewReplicaSetWebhook(),
-		ctrl.NewJobWebhook(),
-		ctrl.NewCronJobWebhook(),
-	}
-	return nil
 }

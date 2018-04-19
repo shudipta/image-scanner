@@ -197,7 +197,7 @@ export TLS_SERVING_CERT=$(cat server.crt | $ONESSL base64)
 export TLS_SERVING_KEY=$(cat server.key | $ONESSL base64)
 export KUBE_CA=$($ONESSL get kube-ca | $ONESSL base64)
 
-${SCRIPT_LOCATION}hack/deploy/operator.yaml | $ONESSL envsubst | kubectl apply -f -
+${SCRIPT_LOCATION}hack/deploy/deployment.yaml | $ONESSL envsubst | kubectl apply -f -
 
 if [ "$SCANNER_ENABLE_RBAC" = true ]; then
     kubectl create serviceaccount $SCANNER_SERVICE_ACCOUNT --namespace $SCANNER_NAMESPACE

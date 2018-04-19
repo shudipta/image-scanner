@@ -43,10 +43,10 @@ The following table lists the configurable parameters of the Scanner chart and t
 
 | Parameter                           | Description                                                       | Default            |
 | ----------------------------------- | ----------------------------------------------------------------- | ------------------ |
-| `replicaCount`                      | Number of scanner operator replicas to create (only 1 is supported) | `1`              |
-| `operator.registry`                 | Docker registry used to pull operator image                       | `appscode`         |
-| `operator.repository`               | operator container image                                          | `scanner`          |
-| `operator.tag`                      | operator container image tag                                      | `0.7.0-rc.3`       |
+| `replicaCount`                      | Number of scanner scanner replicas to create (only 1 is supported)| `1`                |
+| `scanner.registry`                  | Docker registry used to pull scanner image                        | `appscode`         |
+| `scanner.repository`                | scanner container image                                           | `scanner`          |
+| `scanner.tag`                       | scanner container image tag                                       | `0.7.0-rc.3`       |
 | `pushgateway.registry`              | Docker registry used to pull Prometheus pushgateway image         | `prom`             |
 | `pushgateway.repository`            | Prometheus pushgateway container image                            | `pushgateway`      |
 | `pushgateway.tag`                   | Prometheus pushgateway container image tag                        | `v0.4.0`           |

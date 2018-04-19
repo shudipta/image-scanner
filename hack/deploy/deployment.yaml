@@ -29,7 +29,7 @@ spec:
         - --tls-cert-file=/var/serving-cert/tls.crt
         - --tls-private-key-file=/var/serving-cert/tls.key
         - --enable-analytics=${SCANNER_ENABLE_ANALYTICS}
-        image: ${SCANNER_DOCKER_REGISTRY}/scanner:api-v3
+        image: ${SCANNER_DOCKER_REGISTRY}/scanner:xyz
         ports:
         - containerPort: 8443
         volumeMounts:
