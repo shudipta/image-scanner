@@ -19,7 +19,7 @@ import (
 func (f *Framework) NewScannerOptions(kubeConfigPath string, controllerOptions *srvr.ControllerOptions) *srvr.ScannerOptions {
 	opts := srvr.NewScannerOptions(os.Stdout, os.Stderr)
 	opts.RecommendedOptions.Authentication.RemoteKubeConfigFile = kubeConfigPath
-	opts.RecommendedOptions.Authentication.SkipInClusterLookup = true
+	//opts.RecommendedOptions.Authentication.SkipInClusterLookup = true
 	opts.RecommendedOptions.Authorization.RemoteKubeConfigFile = kubeConfigPath
 	opts.RecommendedOptions.CoreAPI.CoreAPIKubeconfigPath = kubeConfigPath
 	opts.RecommendedOptions.SecureServing.BindPort = 8443

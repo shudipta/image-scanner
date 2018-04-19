@@ -12,6 +12,7 @@ import (
 	core "k8s.io/api/core/v1"
 	extensions "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"fmt"
 )
 
 var _ = Describe("Image Scanner", func() {
@@ -127,6 +128,7 @@ var _ = Describe("Image Scanner", func() {
 			skip2 = true
 		} else {
 			data2 = val
+			fmt.Println()
 			secret2 = f.NewSecret(name+"-secret-2", namespace, data2, labels)
 		}
 
@@ -170,11 +172,11 @@ var _ = Describe("Image Scanner", func() {
 			f.DeleteAllSecrets()
 		})
 
-		FContext("Creating Deployment with some vulnerable images", func() {
+		Context("Creating Deployment with some vulnerable images", func() {
 			ctx1(&apps.Deployment{})
 		})
 
-		Context("Creating Deployment with non-vulnerable images", func() {
+		FContext("Creating Deployment with non-vulnerable images", func() {
 			ctx2(&apps.Deployment{}, false)
 		})
 

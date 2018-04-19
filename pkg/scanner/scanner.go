@@ -66,6 +66,7 @@ func IsVulnerable(
 		return nil, nil, WithCode(errors.Wrapf(err, "failed to get BearerToken for image %s", imageName), BearerTokenResponseError)
 	}
 
+	registryUrl = registryUrl + "/v2"
 	postAncestryRequest := &clairpb.PostAncestryRequest{
 		AncestryName: repo,
 		Format:       "Docker",
@@ -105,10 +106,12 @@ func IsVulnerable(
 		fmt.Println("Analysing", layersLen, "layers")
 	}
 
-	clairAddress, err := getAddress(kc)
-	if err != nil {
-		return nil, nil, WithCode(errors.Wrapf(err, "failed to get ClairAddr for image %s", imageName), GettingClairAddressError)
-	}
+	//clairAddress, err := getAddress(kc)
+	//if err != nil {
+	//	return nil, nil, WithCode(errors.Wrapf(err, "failed to get ClairAddr for image %s", imageName), GettingClairAddressError)
+	//}
+	clairAddress := "192.168.99.100:30060"
+	oneliners.PrettyJson(clairAddress, "clairAddress")
 
 	clairClient, err := clairClientSetup(clairAddress)
 	if err != nil {

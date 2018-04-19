@@ -7,14 +7,13 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
-
 	"github.com/coreos/clair/api/v3/clairpb"
 	api "github.com/soter/scanner/apis/scanner/v1alpha1"
 	"google.golang.org/grpc"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/kubernetes/pkg/util/parsers"
+	"time"
 )
 
 func requestBearerToken(repo, userName, password string) (*http.Request, error) {
@@ -71,7 +70,7 @@ func getAddress(kubeClient kubernetes.Interface) (string, error) {
 	}
 
 	if host != "" && port != "" {
-		return "http://" + host + ":" + port, nil
+		return host + ":" + port, nil
 	}
 
 	return "", fmt.Errorf("clair isn't running")
@@ -111,6 +110,8 @@ func getFeaturs(res *clairpb.GetAncestryResponse) []api.Feature {
 }
 
 func parseImageName(imageName, registryUrl string) (string, string, string, string, error) {
+
+	fmt.Println("=========== initial url =", registryUrl)
 	repo, tag, digest, err := parsers.ParseImageName(imageName)
 	if err != nil {
 		return "", "", "", "", err
@@ -157,6 +158,7 @@ func sendLayer(postAncestryRequest *clairpb.PostAncestryRequest, clairClient cla
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 	_, err := clairClient.PostAncestry(ctx, postAncestryRequest)
+	//_, err := clairClient.PostAncestry(context.Background(), postAncestryRequest)
 
 	return err
 }
@@ -168,9 +170,10 @@ func getLayer(
 		WithFeatures:        true,
 		WithVulnerabilities: true,
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-	resp, err := clairClient.GetAncestry(ctx, req)
+	//ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	//defer cancel()
+	//resp, err := clairClient.GetAncestry(ctx, req)
+	resp, err := clairClient.GetAncestry(context.Background(), req)
 	if err != nil {
 		return []api.Feature{}, []api.Vulnerability{}, err
 	}
