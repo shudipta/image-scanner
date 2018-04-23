@@ -66,16 +66,16 @@ clair:
 
     http:
       # Optional endpoint that will receive notifications via POST requests
-      endpoint:
+      endpoint: https://scanner.{$SCANNER_NAMESPACE}.svc:443/audit-log
 
       # Optional PKI configuration
       # If you want to easily generate client certificates and CAs, try the following projects:
       # https://github.com/cloudflare/cfssl
       # https://github.com/coreos/etcd-ca
       servername:
-      cafile:
-      keyfile:
-      certfile:
+      cafile: /var/clair-serving-cert/ca.crt
+      keyfile: /var/clair-serving-cert/cl.key
+      certfile: /var/clair-serving-cert/cl.crt
 
       # Optional HTTP Proxy: must be a valid URL (including the scheme).
       proxy:

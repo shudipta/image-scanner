@@ -24,6 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/apiserver/pkg/registry/rest"
 	genericapiserver "k8s.io/apiserver/pkg/server"
+	"github.com/soter/scanner/pkg/routes"
 )
 
 var (
@@ -100,6 +101,9 @@ func (c completedConfig) New() (*ScannerServer, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	routes.AuditLogWebhook{}.Install(genericServer.Handler.NonGoRestfulMux)
+
 	ctrl, err := c.ControllerConfig.New()
 	if err != nil {
 		return nil, err

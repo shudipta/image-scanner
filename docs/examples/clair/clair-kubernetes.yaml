@@ -1,4 +1,15 @@
 apiVersion: v1
+kind: Secret
+metadata:
+  name: clair-cert
+  labels:
+    app: clair
+data:
+  ca.crt: ${CA_CERT}
+  cl.crt: ${CLIENT_CERT}
+  cl.key: ${CLIENT_KEY}
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: clairsvc
@@ -31,7 +42,7 @@ spec:
     spec:
       containers:
       - name: clair
-        image: quay.io/coreos/clair:v2.0.0
+        image: quay.io/coreos/clair-git:latest
         args:
           - "-config"
           - "/config/config.yaml"
@@ -41,10 +52,17 @@ spec:
         volumeMounts:
         - mountPath: /config
           name: secret-volume
+        - mountPath: /var/clair-serving-cert
+          name: clair-serving-cert
+          readOnly: true
       volumes:
       - name: secret-volume
         secret:
           secretName: clairsecret
+      - name: clair-serving-cert
+        secret:
+          # defaultMode: 420
+          secretName: clair-cert
 ---
 apiVersion: v1
 kind: ReplicationController
