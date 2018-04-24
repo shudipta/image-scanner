@@ -12,6 +12,7 @@ import (
 	"github.com/soter/scanner/pkg/cache"
 	"github.com/soter/scanner/pkg/controller"
 	irregistry "github.com/soter/scanner/pkg/registry/scanner/imagereview"
+	"github.com/soter/scanner/pkg/routes"
 	admission "k8s.io/api/admission/v1beta1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apimachinery"
@@ -24,7 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/version"
 	"k8s.io/apiserver/pkg/registry/rest"
 	genericapiserver "k8s.io/apiserver/pkg/server"
-	"github.com/soter/scanner/pkg/routes"
 )
 
 var (
@@ -102,12 +102,15 @@ func (c completedConfig) New() (*ScannerServer, error) {
 		return nil, err
 	}
 
-	routes.AuditLogWebhook{}.Install(genericServer.Handler.NonGoRestfulMux)
-
 	ctrl, err := c.ControllerConfig.New()
 	if err != nil {
 		return nil, err
 	}
+
+	routes.AuditLogWebhook{
+		ClairNotificationServiceClient: ctrl.ClairNotificationServiceClient,
+	}.Install(genericServer.Handler.NonGoRestfulMux)
+
 	c.ControllerConfig.AdmissionHooks = []hooks.AdmissionHook{
 		ctrl.NewDeploymentWebhook(),
 		ctrl.NewDaemonSetWebhook(),

@@ -36,9 +36,9 @@ fi
 
 # http://redsymbol.net/articles/bash-exit-traps/
 function cleanup {
-    rm -rf $ONESSL ca.crt ca.key server.crt server.key client@clair.crt client@clair.key
+    rm -rf $ONESSL ca.crt ca.key server.crt server.key
 }
-trap cleanup EXIT
+# trap cleanup EXIT
 
 # ref: https://stackoverflow.com/a/7069755/244009
 # ref: https://jonalmeida.com/posts/2013/05/26/different-ways-to-implement-flags-in-bash/
@@ -187,21 +187,14 @@ echo ""
 env | sort | grep SCANNER*
 echo ""
 
-# create necessary TLS certificates:
-# - a local CA key and cert
-# - a webhook server key and cert signed by the local CA
-$ONESSL create ca-cert
-$ONESSL create server-cert server --domains=scanner.$SCANNER_NAMESPACE.svc
 export SERVICE_SERVING_CERT_CA=$(cat ca.crt | $ONESSL base64)
 export TLS_SERVING_CERT=$(cat server.crt | $ONESSL base64)
 export TLS_SERVING_KEY=$(cat server.key | $ONESSL base64)
 export KUBE_CA=$($ONESSL get kube-ca | $ONESSL base64)
 
-$ONESSL create client-cert client --organization=clair
-export CLIENT_CERT=$(cat client@clair.crt | $ONESSL base64)
-export CLIENT_KEY=$(cat client@clair.key | $ONESSL base64)
-kubectl create secret generic clairsecret --from-file=docs/examples/clair/config.yaml
-${SCRIPT_LOCATION}docs/examples/clair/clair-kubernetes.yaml | $ONESSL envsubst | kubectl apply -f -
+export CLAIR_API_SERVING_CERT_CA=$(cat clair-cert/ca.crt | $ONESSL base64)
+export CLAIR_API_CLIENT_CERT=$(cat clair-cert/client@soter.ac.crt | $ONESSL base64)
+export CLAIR_API_CLIENT_KEY=$(cat clair-cert/client@soter.ac.key | $ONESSL base64)
 
 ${SCRIPT_LOCATION}hack/deploy/deployment.yaml | $ONESSL envsubst | kubectl apply -f -
 

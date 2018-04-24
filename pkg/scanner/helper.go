@@ -1,16 +1,12 @@
 package scanner
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
-
 	"github.com/coreos/clair/api/v3/clairpb"
 	api "github.com/soter/scanner/apis/scanner/v1alpha1"
-	"google.golang.org/grpc"
 	"k8s.io/kubernetes/pkg/util/parsers"
 )
 
@@ -102,39 +98,4 @@ func hashPart(digest string) string {
 	}
 
 	return digest[7:]
-}
-
-func clairClientSetup(clairAddress string) (clairpb.AncestryServiceClient, error) {
-	conn, err := grpc.Dial(clairAddress, grpc.WithInsecure())
-	if err != nil {
-		return nil, err
-	}
-
-	c := clairpb.NewAncestryServiceClient(conn)
-	return c, nil
-}
-
-func sendLayer(postAncestryRequest *clairpb.PostAncestryRequest, clairClient clairpb.AncestryServiceClient) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-	_, err := clairClient.PostAncestry(ctx, postAncestryRequest)
-
-	return err
-}
-
-func getLayer(
-	repo string, clairClient clairpb.AncestryServiceClient) ([]api.Feature, []api.Vulnerability, error) {
-	getAncestryRequest := &clairpb.GetAncestryRequest{
-		AncestryName:        repo,
-		WithFeatures:        true,
-		WithVulnerabilities: true,
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-	resp, err := clairClient.GetAncestry(ctx, getAncestryRequest)
-	if err != nil {
-		return []api.Feature{}, []api.Vulnerability{}, err
-	}
-
-	return getFeaturs(resp), getVulnerabilities(resp), nil
 }

@@ -29,12 +29,15 @@ spec:
         - --tls-cert-file=/var/serving-cert/tls.crt
         - --tls-private-key-file=/var/serving-cert/tls.key
         - --enable-analytics=${SCANNER_ENABLE_ANALYTICS}
-        image: ${SCANNER_DOCKER_REGISTRY}/scanner:test
+        image: ${SCANNER_DOCKER_REGISTRY}/scanner:secure-clair
         ports:
         - containerPort: 8443
         volumeMounts:
         - mountPath: /var/serving-cert
           name: serving-cert
+        - mountPath: /var/clairapi-client-cert
+          name: clairapi-client-cert
+          readOnly: true
         readinessProbe:
           httpGet:
             path: /healthz
@@ -45,6 +48,10 @@ spec:
         secret:
           defaultMode: 420
           secretName: scanner-apiserver-cert
+      - name: clairapi-client-cert
+        secret:
+          # defaultMode: 420
+          secretName: scanner-clairapi-client-cert
       tolerations:
       - key: CriticalAddonsOnly
         operator: Exists
@@ -61,6 +68,19 @@ type: kubernetes.io/tls
 data:
   tls.crt: ${TLS_SERVING_CERT}
   tls.key: ${TLS_SERVING_KEY}
+---
+# secret to complete tls configuration with clair api server
+apiVersion: v1
+kind: Secret
+metadata:
+  name: scanner-clairapi-client-cert
+  namespace: ${SCANNER_NAMESPACE}
+  labels:
+    app: scanner
+data:
+  ca.crt: ${CLAIR_API_SERVING_CERT_CA}
+  client.crt: ${CLAIR_API_CLIENT_CERT}
+  client.key: ${CLAIR_API_CLIENT_KEY}
 ---
 # to be able to expose TSB inside the cluster
 apiVersion: v1

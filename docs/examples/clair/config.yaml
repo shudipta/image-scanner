@@ -48,17 +48,17 @@ clair:
     # https://github.com/coreos/etcd-ca
     # https://github.com/cloudflare/cfssl
     servername:
-    cafile:
-    keyfile:
-    certfile:
+    cafile: /var/clair-api-serving-cert/ca.crt
+    keyfile: /var/clair-api-serving-cert/srv.key
+    certfile: /var/clair-api-serving-cert/srv.crt
 
   updater:
     # Frequency the database will be updated with vulnerabilities from the default data sources
     # The value 0 disables the updater entirely.
-    interval: 5m
+    interval: 1m
 
   notifier:
-    # Number of attempts before the notification is marked as failed to be sent
+    # Number of attempts before the notifier is marked as failed to be sent
     attempts: 3
 
     # Duration before a failed notification is retried
@@ -66,16 +66,16 @@ clair:
 
     http:
       # Optional endpoint that will receive notifications via POST requests
-      endpoint: https://scanner.{$SCANNER_NAMESPACE}.svc:443/audit-log
+      endpoint: https://scanner.kube-system.svc:443/audit-log
 
       # Optional PKI configuration
       # If you want to easily generate client certificates and CAs, try the following projects:
       # https://github.com/cloudflare/cfssl
       # https://github.com/coreos/etcd-ca
       servername:
-      cafile: /var/clair-serving-cert/ca.crt
-      keyfile: /var/clair-serving-cert/cl.key
-      certfile: /var/clair-serving-cert/cl.crt
+      cafile: /var/clair-notifier-serving-cert/ca.crt
+      keyfile: /var/clair-notifier-serving-cert/cl.key
+      certfile: /var/clair-notifier-serving-cert/cl.crt
 
       # Optional HTTP Proxy: must be a valid URL (including the scheme).
       proxy:

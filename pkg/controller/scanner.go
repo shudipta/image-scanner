@@ -101,7 +101,7 @@ func (c *ScannerController) CheckImage(
 		}
 
 		for key, val := range authInfo["auths"] {
-			features, vulnerabilities, err := scanner.IsVulnerable(c.KubeClient, key, image, val.Username, val.Password)
+			features, vulnerabilities, err := scanner.IsVulnerable(c.ClairAncestryServiceClient, key, image, val.Username, val.Password)
 			if err == nil || err.(*scanner.ErrorWithCode).Code() > scanner.GettingManifestError {
 				return features, vulnerabilities, err
 			}
@@ -113,7 +113,7 @@ func (c *ScannerController) CheckImage(
 	username := "" // anonymous
 	password := "" // anonymous
 
-	features, vulnerabilities, err := scanner.IsVulnerable(c.KubeClient, registryUrl, image, username, password)
+	features, vulnerabilities, err := scanner.IsVulnerable(c.ClairAncestryServiceClient, registryUrl, image, username, password)
 	imageErr := err.(*scanner.ErrorWithCode)
 	if imageErr.Code() < scanner.BearerTokenRequestError {
 		return features, vulnerabilities, scanner.WithCode(errors.Wrap(err, "incorrect secrets"), imageErr.Code())

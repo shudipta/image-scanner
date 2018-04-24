@@ -12,7 +12,7 @@ import (
 	reg "github.com/heroku/docker-registry-client/registry"
 	"github.com/pkg/errors"
 	api "github.com/soter/scanner/apis/scanner/v1alpha1"
-	"k8s.io/client-go/kubernetes"
+	"github.com/soter/scanner/pkg/clair-api"
 )
 
 // This method takes <registryUrl>, <imageName>, <username>, <password> and
@@ -27,7 +27,7 @@ import (
 // For more information about LayerType{}, https://coreos.com/clair/docs/latest/api_v1.html
 // will be helpful.
 func IsVulnerable(
-	kc kubernetes.Interface,
+	clairAncestryServiceClient clairpb.AncestryServiceClient,
 	registryUrl, imageName, username, password string) ([]api.Feature, []api.Vulnerability, error) {
 
 	// TODO: need to check for digest part
@@ -101,23 +101,18 @@ func IsVulnerable(
 		fmt.Println("Analysing", layersLen, "layers")
 	}
 
-	clairAddress := "192.168.99.100:30060"
-
-	clairClient, err := clairClientSetup(clairAddress)
-	if err != nil {
-		return nil, nil, WithCode(errors.Wrapf(err, "failed to connect"), ConnectingClairClientError)
-	}
-
-	err = sendLayer(postAncestryRequest, clairClient)
+	err = clair_api.SendLayer(postAncestryRequest, clairAncestryServiceClient)
 	if err != nil {
 		return nil, nil, WithCode(errors.Wrapf(err, "failed to send layers for image %s", imageName), PostAncestryError)
 	}
 
-	features, vulnerabilities, err := getLayer(repo, clairClient)
+	resp, err := clair_api.GetLayer(repo, clairAncestryServiceClient)
 	if err != nil {
 		return nil, nil, WithCode(errors.Wrapf(err, "failed to get features and vulnerabilities for image %s", imageName), GetAncestryError)
 	}
 
+	features := getFeaturs(resp)
+	vulnerabilities := getVulnerabilities(resp)
 	if vulnerabilities != nil {
 		return features, vulnerabilities, WithCode(errors.Errorf("Image %s contains vulnerabilities", imageName), VulnerableStatus)
 	}
