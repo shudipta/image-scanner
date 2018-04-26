@@ -133,6 +133,7 @@ var _ = Describe("Image Scanner", func() {
 			{
 				Name:  "labels",
 				Image: "tigerworks/labels",
+				//Image: "shudipta/labels",
 				Ports: []core.ContainerPort{
 					{
 						ContainerPort: 10000,

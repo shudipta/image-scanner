@@ -55,6 +55,6 @@ $ONESSL create client-cert client --organization=clair
 # - a server key and cert signed by this CA for clair api
 # - a client key and cert signed by this CA for clair api
 $ONESSL create ca-cert --cert-dir=clair-cert/
-$ONESSL create server-cert server --cert-dir=clair-cert/ --domains=clairsvc.default.svc --ips=192.168.99.100
+$ONESSL create server-cert server --cert-dir=clair-cert/ --domains=clairsvc.default.svc --ips="192.168.99.100,0.0.0.0"
 $ONESSL create client-cert client --cert-dir=clair-cert/ --organization=soter.ac
 

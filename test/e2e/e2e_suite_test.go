@@ -46,6 +46,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	By("Using test namespace " + root.Namespace())
 
+	//stopCh := genericapiserver.SetupSignalHandler()
 	go root.StartAPIServerAndOperator(options.KubeConfig, options.ControllerOptions)
 	root.EventuallyAPIServerReady("v1alpha1.admission.scanner.soter.ac").Should(Succeed())
 	// let's API server be warmed up

@@ -75,7 +75,7 @@ func IsVulnerable(
 		for i, layer := range manifest.Layers {
 			layers[i] = &clairpb.PostAncestryRequest_PostLayer{
 				Hash:    hashPart(manifest.Config.Digest.String()) + hashPart(layer.Digest.String()),
-				Path:    fmt.Sprintf("%s/%s/%s/%s", registryUrl, repo, "blobs", layer.Digest.String()),
+				Path:    fmt.Sprintf("%s/v2/%s/%s/%s", registryUrl, repo, "blobs", layer.Digest.String()),
 				Headers: map[string]string{"Authorization": token},
 			}
 		}
@@ -85,7 +85,7 @@ func IsVulnerable(
 		for i, layer := range manifest.FSLayers {
 			layers[len(manifest.FSLayers)-1-i] = &clairpb.PostAncestryRequest_PostLayer{
 				Hash:    hashPart(layer.BlobSum.String()),
-				Path:    fmt.Sprintf("%s/%s/%s/%s", registryUrl, repo, "blobs", layer.BlobSum.String()),
+				Path:    fmt.Sprintf("%s/v2/%s/%s/%s", registryUrl, repo, "blobs", layer.BlobSum.String()),
 				Headers: map[string]string{"Authorization": token},
 			}
 		}
@@ -101,21 +101,35 @@ func IsVulnerable(
 		fmt.Println("Analysing", layersLen, "layers")
 	}
 
+	//clairAddress := "192.168.99.100:30060"
+	//
+	//clairAncestryServiceClient, err = clair_api.NewClairAncestryServiceClient(clairAddress)
+	//if err != nil {
+	//	return nil, nil, WithCode(errors.Wrapf(err, "failed to connect Ancestry Service for image %s", imageName), ConnectingClairClientError)
+	//}
+	fmt.Printf("================ success: clairAncestryClient\n")
+
 	err = clair_api.SendLayer(postAncestryRequest, clairAncestryServiceClient)
 	if err != nil {
+		fmt.Printf("====================== failed to send layers for image %s: %v\n", imageName,err)
 		return nil, nil, WithCode(errors.Wrapf(err, "failed to send layers for image %s", imageName), PostAncestryError)
 	}
+	fmt.Printf("================ success: send layers\n")
 
 	resp, err := clair_api.GetLayer(repo, clairAncestryServiceClient)
 	if err != nil {
+		fmt.Printf("==================== failed to get layers for image %s: %v\n", imageName,err)
 		return nil, nil, WithCode(errors.Wrapf(err, "failed to get features and vulnerabilities for image %s", imageName), GetAncestryError)
 	}
+	fmt.Printf("============== success: get layers\n")
 
 	features := getFeaturs(resp)
 	vulnerabilities := getVulnerabilities(resp)
 	if vulnerabilities != nil {
+		fmt.Printf("============== vulnerable image\n")
 		return features, vulnerabilities, WithCode(errors.Errorf("Image %s contains vulnerabilities", imageName), VulnerableStatus)
 	}
 
+	fmt.Printf("============== non-vulnerable image\n")
 	return features, vulnerabilities, WithCode(nil, NotVulnerableStatus)
 }

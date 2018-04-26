@@ -8,12 +8,13 @@ import (
 	"time"
 
 	shell "github.com/codeskyblue/go-sh"
-	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo"
 	srvr "github.com/soter/scanner/pkg/cmds/server"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	genericapiserver "k8s.io/apiserver/pkg/server"
+
 	kapi "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
+	genericapiserver "k8s.io/apiserver/pkg/server"
 )
 
 func (f *Framework) NewScannerOptions(kubeConfigPath string, controllerOptions *srvr.ControllerOptions) *srvr.ScannerOptions {
@@ -32,6 +33,7 @@ func (f *Framework) NewScannerOptions(kubeConfigPath string, controllerOptions *
 }
 
 func (f *Framework) StartAPIServerAndOperator(kubeConfigPath string, controllerOptions *srvr.ControllerOptions) {
+	defer GinkgoRecover()
 	sh := shell.NewSession()
 	args := []interface{}{"--namespace", f.Namespace()}
 	cmd := filepath.Join("..", "..", "hack", "dev", "setup-server.sh")
@@ -41,10 +43,11 @@ func (f *Framework) StartAPIServerAndOperator(kubeConfigPath string, controllerO
 	Expect(err).ShouldNot(HaveOccurred())
 
 	By("Starting Server and Operator")
-	stopCh := genericapiserver.SetupSignalHandler()
+
 	opts := f.NewScannerOptions(kubeConfigPath, controllerOptions)
+	stopCh := genericapiserver.SetupSignalHandler()
 	err = opts.Run(stopCh)
-	Expect(err).ShouldNot(HaveOccurred())
+	Expect(err).NotTo(HaveOccurred())
 }
 
 func (f *Framework) EventuallyAPIServerReady(name string) GomegaAsyncAssertion {

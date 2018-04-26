@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
 	"github.com/coreos/clair/api/v3/clairpb"
 	api "github.com/soter/scanner/apis/scanner/v1alpha1"
 	"k8s.io/kubernetes/pkg/util/parsers"

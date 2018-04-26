@@ -9,7 +9,6 @@ import (
 	"github.com/soter/scanner/apis/scanner"
 	"github.com/soter/scanner/apis/scanner/install"
 	"github.com/soter/scanner/apis/scanner/v1alpha1"
-	"github.com/soter/scanner/pkg/cache"
 	"github.com/soter/scanner/pkg/controller"
 	irregistry "github.com/soter/scanner/pkg/registry/scanner/imagereview"
 	"github.com/soter/scanner/pkg/routes"
@@ -65,7 +64,7 @@ type ScannerServer struct {
 }
 
 func (op *ScannerServer) Run(stopCh <-chan struct{}) error {
-	go cache.New(op.Controller).Run()
+	//go cache.New(op.Controller).Run()
 
 	return op.GenericAPIServer.PrepareRun().Run(stopCh)
 }

@@ -114,9 +114,9 @@ func (c *ScannerController) CheckImage(
 	password := "" // anonymous
 
 	features, vulnerabilities, err := scanner.IsVulnerable(c.ClairAncestryServiceClient, registryUrl, image, username, password)
-	imageErr := err.(*scanner.ErrorWithCode)
-	if imageErr.Code() < scanner.BearerTokenRequestError {
-		return features, vulnerabilities, scanner.WithCode(errors.Wrap(err, "incorrect secrets"), imageErr.Code())
+	//imageErr := err.(*scanner.ErrorWithCode)
+	if err != nil && err.(*scanner.ErrorWithCode).Code() < scanner.BearerTokenRequestError {
+		return features, vulnerabilities, scanner.WithCode(errors.Wrap(err, "incorrect secrets"), err.(*scanner.ErrorWithCode).Code())
 	}
 
 	return features, vulnerabilities, err

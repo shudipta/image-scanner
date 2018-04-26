@@ -1,14 +1,14 @@
 package controller
 
 import (
-	"fmt"
 	"time"
 
 	hooks "github.com/appscode/kubernetes-webhook-util/admission/v1beta1"
-	"github.com/soter/scanner/pkg/clair-api"
 	"github.com/soter/scanner/pkg/eventer"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"github.com/soter/scanner/pkg/clair-api"
+	"fmt"
 )
 
 type Config struct {
@@ -34,18 +34,19 @@ func NewControllerConfig(clientConfig *rest.Config) *ControllerConfig {
 }
 
 func (c *ControllerConfig) New() (*ScannerController, error) {
-	clairAddress := "192.168.99.100:30060"
-	dialOption, err := clair_api.DialOptionForTLSConfig()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get dial option for tls: %v", err)
-	}
+	//clairAddress := "192.168.99.100:30060"
+	clairAddress := "0.0.0.0:6060"
+	//dialOption, err := clair_api.DialOptionForTLSConfig()
+	//if err != nil {
+	//	return nil, fmt.Errorf("failed to get dial option for tls: %v", err)
+	//}
 
-	clairAncestryServiceClient, err := clair_api.NewClairAncestryServiceClient(clairAddress, dialOption)
+	clairAncestryServiceClient, err := clair_api.NewClairAncestryServiceClient(clairAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect for Ancestry Service: %v", err)
 	}
 
-	clairNotificationServiceClient, err := clair_api.NewClairNotificationServiceClient(clairAddress, dialOption)
+	clairNotificationServiceClient, err := clair_api.NewClairNotificationServiceClient(clairAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect for Notification Service: %v", err)
 	}

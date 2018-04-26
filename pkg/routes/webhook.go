@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sync"
+
 	"github.com/appscode/go/log"
 	"github.com/coreos/clair/api/v3/clairpb"
 	"github.com/soter/scanner/pkg/clair-api"
@@ -40,6 +41,18 @@ func (m AuditLogWebhook) Install(c *mux.PathRecorderMux) {
 		}
 
 		fmt.Println("notication =", notificationEnvelop.Notification.Name)
+
+		//clairAddress := "192.168.99.100:30060"
+		//dialOption, err := clair_api.DialOptionForTLSConfig()
+		//if err != nil {
+		//	fmt.Printf("failed to get dial option for tls:", err)
+		//	log.Fatalf("failed to get dial option for tls:", err)
+		//}
+		//m.ClairNotificationServiceClient, err = clair_api.NewClairNotificationServiceClient(clairAddress)
+		//if err != nil {
+		//	fmt.Printf("failed to connect for Notification Service:", err)
+		//	log.Fatalf("failed to connect for Notification Service:", err)
+		//}
 
 		err = clair_api.MarkNotificationAsRead(m.ClairNotificationServiceClient, notificationEnvelop.Notification.Name)
 		if err != nil {
