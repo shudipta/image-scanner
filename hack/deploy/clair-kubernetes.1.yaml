@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: clairsvc-1
+  labels:
+    app: clair-1
+spec:
+  type: NodePort
+  ports:
+  - port: 6066
+    protocol: TCP
+    nodePort: 30066
+    name: clair-port0
+  - port: 6067
+    protocol: TCP
+    nodePort: 30067
+    name: clair-port1
+  selector:
+    app: clair-1
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: clair-1
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: clair-1
+    spec:
+      volumes:
+      - name: secret-volume
+        secret:
+          secretName: clairsecret-1
+      containers:
+      - name: clair
+        image: quay.io/coreos/clair-git:latest
+        args:
+          - "-config"
+          - "/config/config.yaml"
+        ports:
+        - containerPort: 6066
+        - containerPort: 6067
+        volumeMounts:
+        - mountPath: /config
+          name: secret-volume
+          readOnly: true
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  labels:
+    app: postgres-1
+  name: clair-postgres-1
+spec:
+  replicas: 1
+  selector:
+    app: postgres-1
+  template:
+    metadata:
+      labels:
+        app: postgres-1
+    spec:
+      containers:
+      - image: postgres:latest
+        name: postgres
+        env:
+        - name: POSTGRES_PASSWORD
+          value: password
+        ports:
+        - containerPort: 5432
+          name: postgres-port
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: postgres-1
+  name: postgres-1
+spec:
+  ports:
+    - port: 5432
+  selector:
+    app: postgres-1

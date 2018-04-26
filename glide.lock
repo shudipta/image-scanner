@@ -1,5 +1,5 @@
-hash: b03f99ff9adc4541d6c877de75d8e1f757f28b0153ae95219a1a13a09de8b3f8
-updated: 2018-04-17T16:24:43.878470064+06:00
+hash: d9573581702534f482766a96b331be11464deefd8f616523d8947f69280d349b
+updated: 2018-04-18T17:27:30.122814921+06:00
 imports:
 - name: github.com/coreos/clair
   version: a5b3e747a0bffd13929bcbea5bd1d6495cf9f64b
@@ -36,7 +36,8 @@ imports:
   - runtime/internal
   - utilities
 - name: github.com/heroku/docker-registry-client
-  version: fd2fe803496897db70c236ee244f41487ea92ec2
+  version: beae3d84d191791090f0a3a43de05f3aef00121f
+  repo: https://github.com/appscode/docker-registry-client
   subpackages:
   - registry
 - name: github.com/opencontainers/go-digest

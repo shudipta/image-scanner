@@ -5,6 +5,8 @@ import:
   subpackages:
   - api/v3/clairpb
 - package: github.com/heroku/docker-registry-client
+  repo: https://github.com/appscode/docker-registry-client
+  version: master
   subpackages:
   - registry
 - package: github.com/tamalsaha/go-oneliners
