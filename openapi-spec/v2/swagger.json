@@ -195,6 +195,16 @@
           "scannerSoterAc_v1alpha1"
         ],
         "operationId": "deleteScannerSoterAcV1alpha1NamespacedImageReview",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.DeleteOptions"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -213,6 +223,13 @@
       "parameters": [
         {
           "uniqueItems": true,
+          "type": "integer",
+          "description": "The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.",
+          "name": "gracePeriodSeconds",
+          "in": "query"
+        },
+        {
+          "uniqueItems": true,
           "type": "string",
           "description": "name of the ImageReview",
           "name": "name",
@@ -229,9 +246,23 @@
         },
         {
           "uniqueItems": true,
+          "type": "boolean",
+          "description": "Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the \"orphan\" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.",
+          "name": "orphanDependents",
+          "in": "query"
+        },
+        {
+          "uniqueItems": true,
           "type": "string",
           "description": "If 'true', then the output is pretty printed.",
           "name": "pretty",
+          "in": "query"
+        },
+        {
+          "uniqueItems": true,
+          "type": "string",
+          "description": "Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.",
+          "name": "propagationPolicy",
           "in": "query"
         }
       ]
@@ -503,6 +534,48 @@
         }
       ]
     },
+    "io.k8s.apimachinery.pkg.apis.meta.v1.DeleteOptions": {
+      "description": "DeleteOptions may be provided when deleting an API object.",
+      "properties": {
+        "apiVersion": {
+          "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources",
+          "type": "string"
+        },
+        "gracePeriodSeconds": {
+          "description": "The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.",
+          "type": "integer",
+          "format": "int64"
+        },
+        "kind": {
+          "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds",
+          "type": "string"
+        },
+        "orphanDependents": {
+          "description": "Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the \"orphan\" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.",
+          "type": "boolean"
+        },
+        "preconditions": {
+          "description": "Must be fulfilled before a deletion is carried out. If not possible, a 409 Conflict status will be returned.",
+          "$ref": "#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.Preconditions"
+        },
+        "propagationPolicy": {
+          "description": "Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.",
+          "type": "string"
+        }
+      },
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "",
+          "version": "v1",
+          "kind": "DeleteOptions"
+        },
+        {
+          "group": "scanner.soter.ac",
+          "version": "v1alpha1",
+          "kind": "DeleteOptions"
+        }
+      ]
+    },
     "io.k8s.apimachinery.pkg.apis.meta.v1.GroupVersionForDiscovery": {
       "description": "GroupVersion contains the \"group/version\" and \"version\" string of a version. It is made a struct to keep extensibility.",
       "required": [
@@ -687,6 +760,15 @@
         },
         "uid": {
           "description": "UID of the referent. More info: http://kubernetes.io/docs/user-guide/identifiers#uids",
+          "type": "string"
+        }
+      }
+    },
+    "io.k8s.apimachinery.pkg.apis.meta.v1.Preconditions": {
+      "description": "Preconditions must be fulfilled before an operation (update, delete, etc.) is carried out.",
+      "properties": {
+        "uid": {
+          "description": "Specifies the target UID.",
           "type": "string"
         }
       }

@@ -39,7 +39,6 @@ const (
 	metadataEmail            = metadataUrl + "instance/service-accounts/default/email"
 	storageScopePrefix       = "https://www.googleapis.com/auth/devstorage"
 	cloudPlatformScopePrefix = "https://www.googleapis.com/auth/cloud-platform"
-	googleProductName        = "Google"
 	defaultServiceAccount    = "default/"
 )
 
