@@ -33,6 +33,7 @@ func NewScannerOptions(out, errOut io.Writer) *ScannerOptions {
 		StdErr:             errOut,
 	}
 	o.RecommendedOptions.Etcd = nil
+	o.RecommendedOptions.Admission = nil
 
 	return o
 }
