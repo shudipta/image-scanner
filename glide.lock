@@ -1,5 +1,5 @@
-hash: dd46d2db8c69485216adbe9028a3f24d59fca782962897c12258aba6bf54ad0a
-updated: 2018-05-03T11:21:45.283038161-07:00
+hash: 2bf753c4e47df2c593ac1ede90600f145369c0bd848508e03293aa7a5ad14f83
+updated: 2018-05-05T13:02:39.961902416-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -38,7 +38,7 @@ imports:
   - client/workload/v1
   - registry/admissionreview/v1beta1
 - name: github.com/appscode/kutil
-  version: e362752b53a0372091e56d086aded5d7315c0861
+  version: ed8d181d523ddd37e5cb7a23fa457b4c370a5140
   subpackages:
   - discovery
   - meta
@@ -181,7 +181,7 @@ imports:
 - name: github.com/docker/go-units
   version: 9e638d38cf6977a37a8ea0078f3ee75a7cdb2dd1
 - name: github.com/docker/libtrust
-  version: 9cbd2a1374f46905c68a4eb3694a130610adc62a
+  version: aabc10ec26b754e797f9028f4589c5b7bd90dc20
 - name: github.com/elazarl/go-bindata-assetfs
   version: 3dcc96556217539f50599357fb481ac0dc7439b9
 - name: github.com/emicklei/go-restful
@@ -201,7 +201,7 @@ imports:
 - name: github.com/go-openapi/jsonreference
   version: 13c6e3589ad90f49bd3e3bbe2c2cb3d7a4142272
 - name: github.com/go-openapi/spec
-  version: 7abd5745472fff5eb3685386d5fb8bf38683154d
+  version: 1de3e0542de65ad8d75452a595886fdd0befb363
 - name: github.com/go-openapi/swag
   version: f3f9494671f93fcff853e3c6e9e948b3eb71e590
 - name: github.com/gogo/protobuf
@@ -355,7 +355,7 @@ imports:
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
 - name: github.com/pkg/errors
-  version: 645ef00459ed84a119197bfb8d8205042c6df63d
+  version: 816c9085562cd7ee03e7f8188a1cfd942858cded
 - name: github.com/prometheus/client_golang
   version: c5b7fccd204277076155f10851dad72b76a49317
   subpackages:
@@ -610,7 +610,8 @@ imports:
   - third_party/forked/golang/json
   - third_party/forked/golang/reflect
 - name: k8s.io/apiserver
-  version: 5ae41ac86efd753e2ba012f097b83a914b268236
+  version: 6fdedd7050e542dd8c23fdababac0237aedd7f9e
+  repo: https://github.com/tamalsaha/apiserver.git
   subpackages:
   - pkg/admission
   - pkg/admission/configuration
@@ -858,12 +859,14 @@ imports:
   - util/jsonpath
   - util/retry
 - name: k8s.io/kube-aggregator
-  version: 23f9f59d663ea22b680310831a1b7297914b4ed3
+  version: adfe041e31889bef412f2105d246e549f824ca92
   subpackages:
   - pkg/apis/apiregistration
+  - pkg/apis/apiregistration/v1
   - pkg/apis/apiregistration/v1beta1
   - pkg/client/clientset_generated/clientset
   - pkg/client/clientset_generated/clientset/scheme
+  - pkg/client/clientset_generated/clientset/typed/apiregistration/v1
   - pkg/client/clientset_generated/clientset/typed/apiregistration/v1beta1
 - name: k8s.io/kube-openapi
   version: f08db293d3ef80052d6513ece19792642a289fea
