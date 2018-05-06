@@ -11,7 +11,7 @@ echo ""
 function cleanup {
     rm -rf $ONESSL pki
 }
-trap cleanup EXIT
+#trap cleanup EXIT
 
 # ref: https://github.com/appscodelabs/libbuild/blob/master/common/lib.sh#L55
 inside_git_repo() {
@@ -106,7 +106,8 @@ if [ "$APPSCODE_ENV" = "dev" ]; then
     detect_tag
     export SCRIPT_LOCATION="cat "
     export SCANNER_IMAGE_TAG=$TAG
-    export SCANNER_IMAGE_PULL_POLICY=Always
+#    export SCANNER_IMAGE_PULL_POLICY=Always
+    export SCANNER_IMAGE_PULL_POLICY=IfNotPresent
 fi
 
 KUBE_APISERVER_VERSION=$(kubectl version -o=json | $ONESSL jsonpath '{.serverVersion.gitVersion}')
@@ -206,6 +207,7 @@ while test $# -gt 0; do
 done
 
 if [ "$SCANNER_UNINSTALL" -eq 1 ]; then
+
     echo "Uninstalling Scanner ..."
     # delete webhooks and apiservices
     kubectl delete validatingwebhookconfiguration -l app=scanner
@@ -262,33 +264,33 @@ fi
 env | sort | grep SCANNER*
 echo ""
 
-echo "creating necessary certificate-key pairs"
+# echo "creating necessary certificate-key pairs"
 
-# create necessary TLS certificates:
-# - a local CA key and cert
-# - a webhook server key and cert signed by the local CA
-$ONESSL create ca-cert --cert-dir=pki/scanner
-$ONESSL create server-cert server --cert-dir=pki/scanner --domains=scanner.${SCANNER_NAMESPACE}.svc
+# # create necessary TLS certificates:
+# # - a local CA key and cert
+# # - a webhook server key and cert signed by the local CA
+# $ONESSL create ca-cert --cert-dir=pki/scanner
+# $ONESSL create server-cert server --cert-dir=pki/scanner --domains=scanner.${SCANNER_NAMESPACE}.svc
 
-# In the clair notifier part, server=scanner-server, client=clair
-# create necessary TLS certificates:
-# - a client key and cert signed by the above local CA for clair notifier
-$ONESSL create client-cert client --cert-dir=pki/scanner
+# # In the clair notifier part, server=scanner-server, client=clair
+# # create necessary TLS certificates:
+# # - a client key and cert signed by the above local CA for clair notifier
+# $ONESSL create client-cert client --cert-dir=pki/scanner
 
-# In the clair api part: server=clair, client=scanner-server
-# create necessary TLS certificates:
-# - a CA key and cert for clair api
-# - a server key and cert signed by this CA for clair api
-# - a client key and cert signed by this CA for clair api
-$ONESSL create ca-cert --cert-dir=pki/clair
-$ONESSL create server-cert server --cert-dir=pki/clair --domains=clairsvc.${SCANNER_NAMESPACE}.svc
-$ONESSL create client-cert client --cert-dir=pki/clair
+# # In the clair api part: server=clair, client=scanner-server
+# # create necessary TLS certificates:
+# # - a CA key and cert for clair api
+# # - a server key and cert signed by this CA for clair api
+# # - a client key and cert signed by this CA for clair api
+# $ONESSL create ca-cert --cert-dir=pki/clair
+# $ONESSL create server-cert server --cert-dir=pki/clair --domains=clairsvc.${SCANNER_NAMESPACE}.svc
+# $ONESSL create client-cert client --cert-dir=pki/clair
 
 export SERVICE_SERVING_CERT_CA=$(cat pki/scanner/ca.crt | $ONESSL base64)
 export TLS_SERVING_CERT=$(cat pki/scanner/server.crt | $ONESSL base64)
 export TLS_SERVING_KEY=$(cat pki/scanner/server.key | $ONESSL base64)
-export NOTIFIER_CLIENT_CERT=$(cat pki/scanner/client.crt | $ONESSL base64)
-export NOTIFIER_CLIENT_KEY=$(cat pki/scanner/client.key | $ONESSL base64)
+export NOTIFIER_CLIENT_CERT=$(cat pki/scanner/client@.crt | $ONESSL base64)
+export NOTIFIER_CLIENT_KEY=$(cat pki/scanner/client@.key | $ONESSL base64)
 
 export CLAIR_API_SERVING_CERT_CA=$(cat pki/clair/ca.crt | $ONESSL base64)
 export CLAIR_API_SERVER_CERT=$(cat pki/clair/server.crt | $ONESSL base64)
