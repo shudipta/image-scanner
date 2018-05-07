@@ -86,6 +86,7 @@ func (o ScannerOptions) Config() (*server.ScannerConfig, error) {
 		"/apis/scanner.soter.ac/v1alpha1/jobs",
 		"/apis/scanner.soter.ac/v1alpha1/cronjobs",
 		"/apis/scanner.soter.ac/v1alpha1/deploymentconfigs",
+		"/apis/scanner.soter.ac/v1alpha1/imagereviews",
 	}
 
 	controllerConfig := controller.NewConfig(serverConfig.ClientConfig)

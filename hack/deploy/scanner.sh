@@ -106,7 +106,8 @@ if [ "$APPSCODE_ENV" = "dev" ]; then
     detect_tag
     export SCRIPT_LOCATION="cat "
     export SCANNER_IMAGE_TAG=$TAG
-    export SCANNER_IMAGE_PULL_POLICY=Always
+#    export SCANNER_IMAGE_PULL_POLICY=Always
+    export SCANNER_IMAGE_PULL_POLICY=IfNotPresent
 fi
 
 KUBE_APISERVER_VERSION=$(kubectl version -o=json | $ONESSL jsonpath '{.serverVersion.gitVersion}')

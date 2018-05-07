@@ -44,3 +44,20 @@ spec:
     name: scanner-local-apiserver
     namespace: ${SCANNER_NAMESPACE}
   version: v1alpha1
+---
+# register as aggregated apiserver
+apiVersion: apiregistration.k8s.io/v1beta1
+kind: APIService
+metadata:
+  name: v1alpha1.scanner.soter.ac
+  labels:
+    app: test-scanner
+spec:
+  insecureSkipTLSVerify: true
+  group: scanner.soter.ac
+  groupPriorityMinimum: 1000
+  versionPriority: 15
+  service:
+    name: scanner-local-apiserver
+    namespace: ${SCANNER_NAMESPACE}
+  version: v1alpha1

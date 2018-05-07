@@ -35,16 +35,23 @@ func newSelector(labels map[string]string) *metav1.LabelSelector {
 func newPodTemplateSpec(
 	secret string, labels map[string]string,
 	containers []core.Container) core.PodTemplateSpec {
-	return core.PodTemplateSpec{
-		ObjectMeta: newObjectMeta("", "", labels),
-		Spec: core.PodSpec{
+	var podSpec core.PodSpec
+	if secret == "" {
+		podSpec = core.PodSpec{Containers: containers}
+	} else {
+		podSpec = core.PodSpec{
 			Containers: containers,
 			ImagePullSecrets: []core.LocalObjectReference{
 				{
 					Name: secret,
 				},
 			},
-		},
+		}
+	}
+
+	return core.PodTemplateSpec{
+		ObjectMeta: newObjectMeta("", "", labels),
+		Spec:       podSpec,
 	}
 }
 
@@ -55,6 +62,24 @@ func newDeployment(
 
 	return &appsv1.Deployment{
 		ObjectMeta: newObjectMeta(name, namespace, labels),
+		Spec: appsv1.DeploymentSpec{
+			Replicas: int32Ptr(1),
+			Selector: newSelector(labels),
+			Template: newPodTemplateSpec(secret, labels, containers),
+		},
+	}
+}
+
+func NewDeploymentUsingGenerateName(
+	name, namespace string,
+	labels map[string]string,
+	containers []core.Container, secret string) *appsv1.Deployment {
+	return &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: name,
+			Namespace:    namespace,
+			Labels:       labels,
+		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: int32Ptr(1),
 			Selector: newSelector(labels),
