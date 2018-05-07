@@ -1,8 +1,9 @@
-package imagereview
+package workloadreview
 
 import (
 	api "github.com/soter/scanner/apis/scanner/v1alpha1"
 	"github.com/soter/scanner/pkg/clair"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	apirequest "k8s.io/apiserver/pkg/endpoints/request"
@@ -15,7 +16,7 @@ type REST struct {
 	singular string
 }
 
-var _ rest.Creater = &REST{}
+var _ rest.Getter = &REST{}
 var _ rest.GroupVersionKindProvider = &REST{}
 
 func NewREST(scanner *clair.Scanner, plural schema.GroupVersionResource, singular string) *REST {
@@ -27,7 +28,7 @@ func NewREST(scanner *clair.Scanner, plural schema.GroupVersionResource, singula
 }
 
 func (r *REST) GroupVersionKind(containingGV schema.GroupVersion) schema.GroupVersionKind {
-	return api.SchemeGroupVersion.WithKind("ImageReview")
+	return api.SchemeGroupVersion.WithKind("WorkloadReview")
 }
 
 func (r *REST) Resource() (schema.GroupVersionResource, string) {
@@ -35,15 +36,23 @@ func (r *REST) Resource() (schema.GroupVersionResource, string) {
 }
 
 func (r *REST) New() runtime.Object {
-	return &api.ImageReview{}
+	return &api.WorkloadReview{}
 }
 
-func (r *REST) Create(ctx apirequest.Context, obj runtime.Object, _ rest.ValidateObjectFunc, _ bool) (runtime.Object, error) {
-	req := obj.(*api.ImageReview)
+func (r *REST) Get(ctx apirequest.Context, name string, options *metav1.GetOptions) (runtime.Object, error) {
+	namespace := apirequest.NamespaceValue(ctx)
 
-	err := r.scanner.ScanImage(req.Request.Image, req.Request.ImagePullSecrets)
+	result, err := r.scanner.ScanWorkload(r.singular, name, namespace)
 	if err != nil {
 		return nil, err
 	}
-	return req, nil
+	return &api.WorkloadReview{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: apirequest.NamespaceValue(ctx),
+		},
+		Response: &api.WorkloadReviewResponse{
+			Images: result,
+		},
+	}, nil
 }

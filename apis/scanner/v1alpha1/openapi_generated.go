@@ -95,28 +95,42 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 								Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
 							},
 						},
-						"response": {
+						"request": {
 							SchemaProps: spec.SchemaProps{
-								Ref: ref("github.com/soter/scanner/apis/scanner/v1alpha1.ImageReviewResponse"),
+								Ref: ref("github.com/soter/scanner/apis/scanner/v1alpha1.ImageReviewRequest"),
 							},
 						},
 					},
 				},
 			},
 			Dependencies: []string{
-				"github.com/soter/scanner/apis/scanner/v1alpha1.ImageReviewResponse", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+				"github.com/soter/scanner/apis/scanner/v1alpha1.ImageReviewRequest", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 		},
-		"github.com/soter/scanner/apis/scanner/v1alpha1.ImageReviewResponse": {
+		"github.com/soter/scanner/apis/scanner/v1alpha1.ImageReviewRequest": {
 			Schema: spec.Schema{
 				SchemaProps: spec.SchemaProps{
 					Properties: map[string]spec.Schema{
-						"images": {
+						"image": {
 							SchemaProps: spec.SchemaProps{
-								Type: []string{"array"},
+								Description: "Docker image name. More info: https://kubernetes.io/docs/concepts/containers/images This field is optional to allow higher level config management to default or override container images in workload controllers like Deployments and StatefulSets.",
+								Type:        []string{"string"},
+								Format:      "",
+							},
+						},
+						"imagePullSecrets": {
+							VendorExtensible: spec.VendorExtensible{
+								Extensions: spec.Extensions{
+									"x-kubernetes-patch-merge-key": "name",
+									"x-kubernetes-patch-strategy":  "merge",
+								},
+							},
+							SchemaProps: spec.SchemaProps{
+								Description: "ImagePullSecrets is an optional list of references to secrets in the same namespace to use for pulling any of the images used by this PodSpec. If specified, these secrets will be passed to individual puller implementations for them to use. For example, in the case of docker, only DockerConfig type secrets are honored. More info: https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod",
+								Type:        []string{"array"},
 								Items: &spec.SchemaOrArray{
 									Schema: &spec.Schema{
 										SchemaProps: spec.SchemaProps{
-											Ref: ref("github.com/soter/scanner/apis/scanner/v1alpha1.ScanResult"),
+											Ref: ref("k8s.io/api/core/v1.ObjectReference"),
 										},
 									},
 								},
@@ -126,7 +140,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 				},
 			},
 			Dependencies: []string{
-				"github.com/soter/scanner/apis/scanner/v1alpha1.ScanResult"},
+				"k8s.io/api/core/v1.ObjectReference"},
 		},
 		"github.com/soter/scanner/apis/scanner/v1alpha1.ScanResult": {
 			Schema: spec.Schema{
@@ -209,6 +223,63 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 				},
 			},
 			Dependencies: []string{},
+		},
+		"github.com/soter/scanner/apis/scanner/v1alpha1.WorkloadReview": {
+			Schema: spec.Schema{
+				SchemaProps: spec.SchemaProps{
+					Description: "WorkloadReview describes a peer ping request/response.",
+					Properties: map[string]spec.Schema{
+						"kind": {
+							SchemaProps: spec.SchemaProps{
+								Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds",
+								Type:        []string{"string"},
+								Format:      "",
+							},
+						},
+						"apiVersion": {
+							SchemaProps: spec.SchemaProps{
+								Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources",
+								Type:        []string{"string"},
+								Format:      "",
+							},
+						},
+						"metadata": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+							},
+						},
+						"response": {
+							SchemaProps: spec.SchemaProps{
+								Ref: ref("github.com/soter/scanner/apis/scanner/v1alpha1.WorkloadReviewResponse"),
+							},
+						},
+					},
+				},
+			},
+			Dependencies: []string{
+				"github.com/soter/scanner/apis/scanner/v1alpha1.WorkloadReviewResponse", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+		},
+		"github.com/soter/scanner/apis/scanner/v1alpha1.WorkloadReviewResponse": {
+			Schema: spec.Schema{
+				SchemaProps: spec.SchemaProps{
+					Properties: map[string]spec.Schema{
+						"images": {
+							SchemaProps: spec.SchemaProps{
+								Type: []string{"array"},
+								Items: &spec.SchemaOrArray{
+									Schema: &spec.Schema{
+										SchemaProps: spec.SchemaProps{
+											Ref: ref("github.com/soter/scanner/apis/scanner/v1alpha1.ScanResult"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			Dependencies: []string{
+				"github.com/soter/scanner/apis/scanner/v1alpha1.ScanResult"},
 		},
 		"k8s.io/api/core/v1.AWSElasticBlockStoreVolumeSource": {
 			Schema: spec.Schema{

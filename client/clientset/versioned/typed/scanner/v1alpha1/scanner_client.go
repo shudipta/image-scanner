@@ -28,6 +28,7 @@ import (
 type ScannerV1alpha1Interface interface {
 	RESTClient() rest.Interface
 	ImageReviewsGetter
+	WorkloadReviewsGetter
 }
 
 // ScannerV1alpha1Client is used to interact with features provided by the scanner.soter.ac group.
@@ -37,6 +38,10 @@ type ScannerV1alpha1Client struct {
 
 func (c *ScannerV1alpha1Client) ImageReviews(namespace string) ImageReviewInterface {
 	return newImageReviews(c, namespace)
+}
+
+func (c *ScannerV1alpha1Client) WorkloadReviews(namespace string) WorkloadReviewInterface {
+	return newWorkloadReviews(c, namespace)
 }
 
 // NewForConfig creates a new ScannerV1alpha1Client for the given config.

@@ -48,7 +48,7 @@ func generateSwaggerJson() {
 			v1alpha1.GetOpenAPIDefinitions,
 		},
 		CDResources: []schema.GroupVersionResource{
-			v1alpha1.SchemeGroupVersion.WithResource(v1alpha1.ResourcePluralImageReview),
+			v1alpha1.SchemeGroupVersion.WithResource(v1alpha1.ResourcePluralWorkloadReview),
 		},
 	})
 	if err != nil {

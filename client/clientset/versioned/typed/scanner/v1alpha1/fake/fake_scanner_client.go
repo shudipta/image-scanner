@@ -32,6 +32,10 @@ func (c *FakeScannerV1alpha1) ImageReviews(namespace string) v1alpha1.ImageRevie
 	return &FakeImageReviews{c, namespace}
 }
 
+func (c *FakeScannerV1alpha1) WorkloadReviews(namespace string) v1alpha1.WorkloadReviewInterface {
+	return &FakeWorkloadReviews{c, namespace}
+}
+
 // RESTClient returns a RESTClient that is used to communicate
 // with API server by this client implementation.
 func (c *FakeScannerV1alpha1) RESTClient() rest.Interface {

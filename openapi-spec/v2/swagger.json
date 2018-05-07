@@ -104,9 +104,9 @@
         }
       }
     },
-    "/apis/scanner.soter.ac/v1alpha1/namespaces/{namespace}/imagereviews": {
+    "/apis/scanner.soter.ac/v1alpha1/namespaces/{namespace}/workloadreviews": {
       "post": {
-        "description": "create an ImageReview",
+        "description": "create a WorkloadReview",
         "consumes": [
           "*/*"
         ],
@@ -121,14 +121,14 @@
         "tags": [
           "scannerSoterAc_v1alpha1"
         ],
-        "operationId": "createScannerSoterAcV1alpha1NamespacedImageReview",
+        "operationId": "createScannerSoterAcV1alpha1NamespacedWorkloadReview",
         "parameters": [
           {
             "name": "body",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/com.github.soter.scanner.apis.scanner.v1alpha1.ImageReview"
+              "$ref": "#/definitions/com.github.soter.scanner.apis.scanner.v1alpha1.WorkloadReview"
             }
           }
         ],
@@ -136,19 +136,19 @@
           "200": {
             "description": "OK",
             "schema": {
-              "$ref": "#/definitions/com.github.soter.scanner.apis.scanner.v1alpha1.ImageReview"
+              "$ref": "#/definitions/com.github.soter.scanner.apis.scanner.v1alpha1.WorkloadReview"
             }
           },
           "201": {
             "description": "Created",
             "schema": {
-              "$ref": "#/definitions/com.github.soter.scanner.apis.scanner.v1alpha1.ImageReview"
+              "$ref": "#/definitions/com.github.soter.scanner.apis.scanner.v1alpha1.WorkloadReview"
             }
           },
           "202": {
             "description": "Accepted",
             "schema": {
-              "$ref": "#/definitions/com.github.soter.scanner.apis.scanner.v1alpha1.ImageReview"
+              "$ref": "#/definitions/com.github.soter.scanner.apis.scanner.v1alpha1.WorkloadReview"
             }
           }
         },
@@ -156,7 +156,7 @@
         "x-kubernetes-group-version-kind": {
           "group": "scanner.soter.ac",
           "version": "v1alpha1",
-          "kind": "ImageReview"
+          "kind": "WorkloadReview"
         }
       },
       "parameters": [
@@ -177,9 +177,9 @@
         }
       ]
     },
-    "/apis/scanner.soter.ac/v1alpha1/namespaces/{namespace}/imagereviews/{name}": {
+    "/apis/scanner.soter.ac/v1alpha1/namespaces/{namespace}/workloadreviews/{name}": {
       "delete": {
-        "description": "delete an ImageReview",
+        "description": "delete a WorkloadReview",
         "consumes": [
           "*/*"
         ],
@@ -194,7 +194,7 @@
         "tags": [
           "scannerSoterAc_v1alpha1"
         ],
-        "operationId": "deleteScannerSoterAcV1alpha1NamespacedImageReview",
+        "operationId": "deleteScannerSoterAcV1alpha1NamespacedWorkloadReview",
         "parameters": [
           {
             "name": "body",
@@ -217,7 +217,7 @@
         "x-kubernetes-group-version-kind": {
           "group": "scanner.soter.ac",
           "version": "v1alpha1",
-          "kind": "ImageReview"
+          "kind": "WorkloadReview"
         }
       },
       "parameters": [
@@ -231,7 +231,7 @@
         {
           "uniqueItems": true,
           "type": "string",
-          "description": "name of the ImageReview",
+          "description": "name of the WorkloadReview",
           "name": "name",
           "in": "path",
           "required": true
@@ -288,42 +288,6 @@
         }
       }
     },
-    "com.github.soter.scanner.apis.scanner.v1alpha1.ImageReview": {
-      "description": "ImageReview describes a peer ping request/response.",
-      "properties": {
-        "apiVersion": {
-          "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources",
-          "type": "string"
-        },
-        "kind": {
-          "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds",
-          "type": "string"
-        },
-        "metadata": {
-          "$ref": "#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta"
-        },
-        "response": {
-          "$ref": "#/definitions/com.github.soter.scanner.apis.scanner.v1alpha1.ImageReviewResponse"
-        }
-      },
-      "x-kubernetes-group-version-kind": [
-        {
-          "group": "scanner.soter.ac",
-          "version": "v1alpha1",
-          "kind": "ImageReview"
-        }
-      ]
-    },
-    "com.github.soter.scanner.apis.scanner.v1alpha1.ImageReviewResponse": {
-      "properties": {
-        "images": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/com.github.soter.scanner.apis.scanner.v1alpha1.ScanResult"
-          }
-        }
-      }
-    },
     "com.github.soter.scanner.apis.scanner.v1alpha1.ScanResult": {
       "properties": {
         "features": {
@@ -362,6 +326,42 @@
         "featureName": {
           "description": "FixedIn     []Feature `json:\"FixedIn,omitempty\"`",
           "type": "string"
+        }
+      }
+    },
+    "com.github.soter.scanner.apis.scanner.v1alpha1.WorkloadReview": {
+      "description": "WorkloadReview describes a peer ping request/response.",
+      "properties": {
+        "apiVersion": {
+          "description": "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources",
+          "type": "string"
+        },
+        "kind": {
+          "description": "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds",
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta"
+        },
+        "response": {
+          "$ref": "#/definitions/com.github.soter.scanner.apis.scanner.v1alpha1.WorkloadReviewResponse"
+        }
+      },
+      "x-kubernetes-group-version-kind": [
+        {
+          "group": "scanner.soter.ac",
+          "version": "v1alpha1",
+          "kind": "WorkloadReview"
+        }
+      ]
+    },
+    "com.github.soter.scanner.apis.scanner.v1alpha1.WorkloadReviewResponse": {
+      "properties": {
+        "images": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/com.github.soter.scanner.apis.scanner.v1alpha1.ScanResult"
+          }
         }
       }
     },

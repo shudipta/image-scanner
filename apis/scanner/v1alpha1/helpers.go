@@ -21,7 +21,7 @@ func (r ScanResult) HasVulnerabilities(maxAccepted types.Severity) bool {
 	return false
 }
 
-func (r ImageReviewResponse) HasVulnerabilities(maxAccepted types.Severity) bool {
+func (r WorkloadReviewResponse) HasVulnerabilities(maxAccepted types.Severity) bool {
 	for _, img := range r.Images {
 		if img.HasVulnerabilities(maxAccepted) {
 			return true

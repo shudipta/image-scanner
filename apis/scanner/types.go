@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -30,7 +31,7 @@ type ScanResult struct {
 	Features []Feature
 }
 
-type ImageReviewResponse struct {
+type WorkloadReviewResponse struct {
 	Images []ScanResult `json:"images,omitempty"`
 }
 
@@ -38,10 +39,41 @@ type ImageReviewResponse struct {
 // +genclient:skipVerbs=list,update,patch,delete,deleteCollection,watch
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
+// WorkloadReview describes a peer ping request/response.
+type WorkloadReview struct {
+	metav1.TypeMeta
+	metav1.ObjectMeta
+	// +optional
+	Response *WorkloadReviewResponse
+}
+
+// +genclient
+// +genclient:skipVerbs=list,update,patch,delete,deleteCollection,watch
+// +k8s:openapi-gen=true
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
 // ImageReview describes a peer ping request/response.
 type ImageReview struct {
 	metav1.TypeMeta
 	metav1.ObjectMeta
 	// +optional
-	Response *ImageReviewResponse
+	Request *ImageReviewRequest
+}
+
+type ImageReviewRequest struct {
+	// Docker image name.
+	// More info: https://kubernetes.io/docs/concepts/containers/images
+	// This field is optional to allow higher level config management to default or override
+	// container images in workload controllers like Deployments and StatefulSets.
+	// +optional
+	Image string
+
+	// ImagePullSecrets is an optional list of references to secrets in the same namespace to use for pulling any of the images used by this PodSpec.
+	// If specified, these secrets will be passed to individual puller implementations for them to use. For example,
+	// in the case of docker, only DockerConfig type secrets are honored.
+	// More info: https://kubernetes.io/docs/concepts/containers/images#specifying-imagepullsecrets-on-a-pod
+	// +optional
+	// +patchMergeKey=name
+	// +patchStrategy=merge
+	ImagePullSecrets []core.ObjectReference
 }

@@ -34,7 +34,7 @@ func (c *Controller) checkWorkload(w *wpi.Workload) (runtime.Object, error) {
 	if result, err := c.scanner.ScanWorkloadObject(w); err != nil {
 		return nil, err
 	} else {
-		resp := api.ImageReviewResponse{Images: result}
+		resp := api.WorkloadReviewResponse{Images: result}
 		if resp.HasVulnerabilities(c.Severity) {
 			ref, err := reference.GetReference(scheme.Scheme, w.Object)
 			if err == nil {
