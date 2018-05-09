@@ -2,18 +2,17 @@ package cmds
 
 import (
 	"fmt"
-	"path/filepath"
 
 	workload "github.com/appscode/kubernetes-webhook-util/apis/workload/v1"
+	"github.com/pkg/errors"
 	cs "github.com/soter/scanner/client/clientset/versioned"
-	"github.com/soter/scanner/pkg/cmds/scan"
+	"github.com/soter/scanner/pkg/cli"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 )
 
-func NewCmdScan() *cobra.Command {
+func NewCmdScan(clientConfig clientcmd.ClientConfig) *cobra.Command {
 	var (
 		resourceKinds = sets.NewString(
 			workload.ResourcePods, "po",
@@ -28,7 +27,7 @@ func NewCmdScan() *cobra.Command {
 			"image",
 		)
 		namespace = ""
-		secrets   = []string{}
+		secrets   []string
 	)
 	scanCmd := &cobra.Command{
 		Use:               "scan",
@@ -44,17 +43,14 @@ func NewCmdScan() *cobra.Command {
 				return fmt.Errorf("unknown resource kind: %s", args[0])
 			}
 
-			masterURL := ""
-			kubeconfigPath := filepath.Join(homedir.HomeDir(), ".kube/config")
-
-			config, err := clientcmd.BuildConfigFromFlags(masterURL, kubeconfigPath)
+			config, err := clientConfig.ClientConfig()
 			if err != nil {
-				return fmt.Errorf("Could not get Kubernetes config: %s", err)
+				return errors.Wrap(err, "Could not get Kubernetes config")
 			}
 
 			client := cs.NewForConfigOrDie(config)
 
-			result, err := scan.ScanResult(client, args[0], args[1], namespace, secrets...)
+			result, err := cli.ScanResult(client, args[0], args[1], namespace, secrets...)
 			if err != nil {
 				return err
 			}

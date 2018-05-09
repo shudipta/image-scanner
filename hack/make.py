@@ -46,6 +46,16 @@ libbuild.BIN_MATRIX = {
         'distro': {
             'alpine': ['amd64']
         }
+    },
+    'scanner-cli': {
+        'type': 'go',
+        'release': True,
+        'go_version': True,
+        'use_cgo': False,
+        'distro': {
+            'darwin': ['amd64'],
+            'linux': ['amd64']
+        }
     }
 }
 if libbuild.ENV not in ['prod']:
@@ -105,7 +115,7 @@ def gen():
 
 def build_cmd(name):
     cfg = libbuild.BIN_MATRIX[name]
-    entrypoint='*.go'
+    entrypoint="cmd/{0}/*.go".format(name)
     compress = libbuild.ENV in ['prod']
     if cfg['type'] == 'go':
         if 'distro' in cfg:
@@ -157,13 +167,13 @@ def update_registry():
 
 
 def install():
-    die(call('GO15VENDOREXPERIMENT=1 ' + libbuild.GOC + ' install .'))
+    die(call('GO15VENDOREXPERIMENT=1 ' + libbuild.GOC + ' install ./cmd/...'))
 
 
 def default():
     gen()
     fmt()
-    die(call('GO15VENDOREXPERIMENT=1 ' + libbuild.GOC + ' install . ./test/...'))
+    die(call('GO15VENDOREXPERIMENT=1 ' + libbuild.GOC + ' install ./cmd/... ./test/...'))
 
 
 def test(type, *args):
