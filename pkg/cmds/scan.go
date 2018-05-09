@@ -65,19 +65,6 @@ func NewCmdScan() *cobra.Command {
 
 	scanCmd.Flags().StringVarP(&namespace, "namespace", "n", namespace, "namespace of imagePullSecrets for image that'll be scanned")
 	scanCmd.Flags().StringSliceVar(&secrets, "secrets", secrets, "imagePullSecrets for image that'll be scanned")
-	//// command for workloads
-	//scanCmd.AddCommand(NewCmdScanPod(name))
-	//scanCmd.AddCommand(NewCmdScanDeployment(name))
-	//scanCmd.AddCommand(NewCmdScanReplicaSet(name))
-	//scanCmd.AddCommand(NewCmdScanReplicationController(name))
-	//scanCmd.AddCommand(NewCmdScanStatefulSet(name))
-	//scanCmd.AddCommand(NewCmdScanDaemonSet(name))
-	//scanCmd.AddCommand(NewCmdScanJob(name))
-	//scanCmd.AddCommand(NewCmdScanCronJob(name))
-	//scanCmd.AddCommand(NewCmdScanDeploymentConfig(name))
-	//
-	//// command for imagereview
-	//scanCmd.AddCommand(NewCmdScanImage(name))
 
 	return scanCmd
 }
