@@ -237,7 +237,7 @@ if [ "$SCANNER_UNINSTALL" -eq 1 ]; then
         sleep 5;
 
         echo "Uninstalling Clair ..."
-        kubectl delete configmap -l app=clair -n $SCANNER_NAMESPACE
+        kubectl delete secret -l app=clair -n $SCANNER_NAMESPACE
         (${SCRIPT_LOCATION}hack/deploy/clair/clair.yaml | $ONESSL envsubst | kubectl delete -f -) || true
 
         echo "Uninstalling Clair PostgreSQL ..."
@@ -307,13 +307,13 @@ $ONESSL wait-until-ready deployment clair-postgresql --namespace $SCANNER_NAMESP
 echo
 echo "Installing Clair ..."
 CONFIG_FOUND=1
-kubectl get configmap clair-config -n $SCANNER_NAMESPACE > /dev/null 2>&1 || CONFIG_FOUND=0
+kubectl get secret clair-config -n $SCANNER_NAMESPACE > /dev/null 2>&1 || CONFIG_FOUND=0
 if [ $CONFIG_FOUND -eq 0 ]; then
     config=`${SCRIPT_LOCATION}hack/deploy/clair/config.yaml | $ONESSL envsubst`
-    kubectl create configmap clair-config -n $SCANNER_NAMESPACE \
+    kubectl create secret generic clair-config -n $SCANNER_NAMESPACE \
         --from-literal=config.yaml="${config}"
 fi
-kubectl label configmap clair-config app=clair -n $SCANNER_NAMESPACE --overwrite
+kubectl label secret clair-config app=clair -n $SCANNER_NAMESPACE --overwrite
 ${SCRIPT_LOCATION}hack/deploy/clair/clair.yaml | $ONESSL envsubst | kubectl apply -f -
 
 echo "waiting until Clair deployment is ready"

@@ -55,8 +55,8 @@ spec:
 {{- end }}
       volumes:
       - name: clair-config
-        configMap:
-          name: {{ template "clair.fullname" . }}
+        secret:
+          secretName: {{ template "clair.fullname" . }}
       - name: clair-server-cert
         secret:
           secretName: {{ template "clair.fullname" . }}-server-cert

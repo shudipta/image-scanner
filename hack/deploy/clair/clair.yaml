@@ -92,8 +92,8 @@ spec:
           readOnly: true
       volumes:
       - name: clair-config
-        configMap:
-          name: clair-config
+        secret:
+          secretName: clair-config
       - name: clair-server-cert
         secret:
           secretName: clair-server-cert

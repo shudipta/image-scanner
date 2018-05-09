@@ -31,7 +31,7 @@ clean() {
 build_binary() {
     pushd $GOPATH/src/github.com/soter/scanner
     ./hack/builddeps.sh
-    ./hack/make.py build
+    ./hack/make.py build scanner
     detect_tag $DIST/.tag
     popd
 }
