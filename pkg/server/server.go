@@ -10,7 +10,9 @@ import (
 	"github.com/soter/scanner/apis/scanner/install"
 	"github.com/soter/scanner/apis/scanner/v1alpha1"
 	"github.com/soter/scanner/pkg/controller"
+	"github.com/soter/scanner/pkg/registry/scanner"
 	irregistry "github.com/soter/scanner/pkg/registry/scanner/imagereview"
+	wrregistry "github.com/soter/scanner/pkg/registry/scanner/workloadreview"
 	"github.com/soter/scanner/pkg/routes"
 	admission "k8s.io/api/admission/v1beta1"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -32,6 +34,25 @@ var (
 	Scheme               = runtime.NewScheme()
 	Codecs               = serializer.NewCodecFactory(Scheme)
 )
+
+// scheme is the registry for the common types that adhere to the meta v1 API spec.
+var scheme = runtime.NewScheme()
+
+// ParameterCodec knows about query parameters used with the meta v1 API spec.
+var ParameterCodec = runtime.NewParameterCodec(scheme)
+
+func init() {
+	scheme.AddUnversionedTypes(metav1.SchemeGroupVersion,
+		&metav1.ListOptions{},
+		&metav1.ExportOptions{},
+		&metav1.GetOptions{},
+		&metav1.DeleteOptions{},
+		&v1alpha1.ImageReviewOptions{},
+	)
+
+	// register manually. This usually goes through the SchemeBuilder, which we cannot use here.
+	metav1.RegisterDefaults(scheme)
+}
 
 func init() {
 	install.Install(groupFactoryRegistry, registry, Scheme)
@@ -241,32 +262,42 @@ func (c completedConfig) New() (*ScannerServer, error) {
 			// TODO unhardcode this.  It was hardcoded before, but we need to re-evaluate
 			OptionsExternalVersion: &schema.GroupVersion{Version: "v1"},
 			Scheme:                 Scheme,
-			ParameterCodec:         metav1.ParameterCodec,
+			ParameterCodec:         ParameterCodec,
 			NegotiatedSerializer:   Codecs,
 		}
 
-		scanners := []irregistry.ScannerStorage{
-			irregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourcePods), wpi.ResourcePod),
-			irregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceDeployments), wpi.ResourceDeployment),
-			irregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceReplicaSets), wpi.ResourceReplicaSet),
-			irregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceReplicationControllers), wpi.ResourceReplicationController),
-			irregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceStatefulSets), wpi.ResourceStatefulSet),
-			irregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceDaemonSets), wpi.ResourceDaemonSet),
-			irregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceJobs), wpi.ResourceJob),
-			irregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceCronJobs), wpi.ResourceCronJob),
-			irregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceDeploymentConfigs), wpi.ResourceDeploymentConfig),
+		scanners := []scanner.Storage{
+			wrregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourcePods), wpi.ResourcePod),
+			wrregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceDeployments), wpi.ResourceDeployment),
+			wrregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceReplicaSets), wpi.ResourceReplicaSet),
+			wrregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceReplicationControllers), wpi.ResourceReplicationController),
+			wrregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceStatefulSets), wpi.ResourceStatefulSet),
+			wrregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceDaemonSets), wpi.ResourceDaemonSet),
+			wrregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceJobs), wpi.ResourceJob),
+			wrregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceCronJobs), wpi.ResourceCronJob),
+			wrregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(wpi.ResourceDeploymentConfigs), wpi.ResourceDeploymentConfig),
+
+			irregistry.NewREST(c.ScannerConfig.Scanner, v1alpha1.SchemeGroupVersion.WithResource(v1alpha1.ResourcePluralImageReview), v1alpha1.ResourceSingularImageReview),
 		}
 
 		for i := range scanners {
 			s := scanners[i]
 			plural, singular := s.Resource()
 			gv := plural.GroupVersion()
+			gvk := s.GroupVersionKind(gv)
 
+			var scope meta.RESTScope
+			switch gvk.Kind {
+			case v1alpha1.ResourceKindWorkloadReview:
+				scope = meta.RESTScopeNamespace
+			case v1alpha1.ResourceKindImageReview:
+				scope = meta.RESTScopeRoot
+			}
 			restMapper.AddSpecific(
-				v1alpha1.SchemeGroupVersion.WithKind("ImageReview"),
+				s.GroupVersionKind(gv),
 				plural,
 				gv.WithResource(singular),
-				meta.RESTScopeRoot)
+				scope)
 
 			// just overwrite the groupversion with a random one.  We don't really care or know.
 			apiGroupInfo.GroupMeta.GroupVersions = appendUniqueGroupVersion(apiGroupInfo.GroupMeta.GroupVersions, gv)

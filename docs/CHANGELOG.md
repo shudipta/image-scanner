@@ -27,7 +27,7 @@ aliases:
 
 - Handle Docker registry credentials properly [\#29](https://github.com/soter/scanner/issues/29)
 - Perform as a Image review process [\#8](https://github.com/soter/scanner/issues/8)
-- Add ImageReview api [\#5](https://github.com/soter/scanner/issues/5)
+- Add WorkloadReview api [\#5](https://github.com/soter/scanner/issues/5)
 
 **Merged pull requests:**
 
@@ -62,9 +62,9 @@ aliases:
 - Change image name parsing part and added test for creating CronJob [\#14](https://github.com/soter/scanner/pull/14) ([shudipta](https://github.com/shudipta))
 - Add chart [\#12](https://github.com/soter/scanner/pull/12) ([tamalsaha](https://github.com/tamalsaha))
 - Generate swagger.json [\#11](https://github.com/soter/scanner/pull/11) ([tamalsaha](https://github.com/tamalsaha))
-- Add ImageReview api [\#10](https://github.com/soter/scanner/pull/10) ([tamalsaha](https://github.com/tamalsaha))
+- Add WorkloadReview api [\#10](https://github.com/soter/scanner/pull/10) ([tamalsaha](https://github.com/tamalsaha))
 - Running Clair in Minikube [\#9](https://github.com/soter/scanner/pull/9) ([shudipta](https://github.com/shudipta))
-- Add ImageReview api [\#7](https://github.com/soter/scanner/pull/7) ([tamalsaha](https://github.com/tamalsaha))
+- Add WorkloadReview api [\#7](https://github.com/soter/scanner/pull/7) ([tamalsaha](https://github.com/tamalsaha))
 - Pre-Cache for each workload those are already running [\#6](https://github.com/soter/scanner/pull/6) ([shudipta](https://github.com/shudipta))
 - Rename --analytics to --enable-analytics [\#4](https://github.com/soter/scanner/pull/4) ([tamalsaha](https://github.com/tamalsaha))
 - Scan Image for Vulnerabilities [\#3](https://github.com/soter/scanner/pull/3) ([shudipta](https://github.com/shudipta))

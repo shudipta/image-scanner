@@ -28,7 +28,7 @@ import (
 // ImageReviewsGetter has a method to return a ImageReviewInterface.
 // A group's client should implement this interface.
 type ImageReviewsGetter interface {
-	ImageReviews(namespace string) ImageReviewInterface
+	ImageReviews() ImageReviewInterface
 }
 
 // ImageReviewInterface has methods to work with ImageReview resources.
@@ -41,14 +41,12 @@ type ImageReviewInterface interface {
 // imageReviews implements ImageReviewInterface
 type imageReviews struct {
 	client rest.Interface
-	ns     string
 }
 
 // newImageReviews returns a ImageReviews
-func newImageReviews(c *ScannerV1alpha1Client, namespace string) *imageReviews {
+func newImageReviews(c *ScannerV1alpha1Client) *imageReviews {
 	return &imageReviews{
 		client: c.RESTClient(),
-		ns:     namespace,
 	}
 }
 
@@ -56,7 +54,6 @@ func newImageReviews(c *ScannerV1alpha1Client, namespace string) *imageReviews {
 func (c *imageReviews) Get(name string, options v1.GetOptions) (result *v1alpha1.ImageReview, err error) {
 	result = &v1alpha1.ImageReview{}
 	err = c.client.Get().
-		Namespace(c.ns).
 		Resource("imagereviews").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -69,7 +66,6 @@ func (c *imageReviews) Get(name string, options v1.GetOptions) (result *v1alpha1
 func (c *imageReviews) Create(imageReview *v1alpha1.ImageReview) (result *v1alpha1.ImageReview, err error) {
 	result = &v1alpha1.ImageReview{}
 	err = c.client.Post().
-		Namespace(c.ns).
 		Resource("imagereviews").
 		Body(imageReview).
 		Do().

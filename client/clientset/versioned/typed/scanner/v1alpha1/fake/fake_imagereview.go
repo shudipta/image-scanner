@@ -28,7 +28,6 @@ import (
 // FakeImageReviews implements ImageReviewInterface
 type FakeImageReviews struct {
 	Fake *FakeScannerV1alpha1
-	ns   string
 }
 
 var imagereviewsResource = schema.GroupVersionResource{Group: "scanner.soter.ac", Version: "v1alpha1", Resource: "imagereviews"}
@@ -38,8 +37,7 @@ var imagereviewsKind = schema.GroupVersionKind{Group: "scanner.soter.ac", Versio
 // Get takes name of the imageReview, and returns the corresponding imageReview object, and an error if there is any.
 func (c *FakeImageReviews) Get(name string, options v1.GetOptions) (result *v1alpha1.ImageReview, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewGetAction(imagereviewsResource, c.ns, name), &v1alpha1.ImageReview{})
-
+		Invokes(testing.NewRootGetAction(imagereviewsResource, name), &v1alpha1.ImageReview{})
 	if obj == nil {
 		return nil, err
 	}
@@ -49,8 +47,7 @@ func (c *FakeImageReviews) Get(name string, options v1.GetOptions) (result *v1al
 // Create takes the representation of a imageReview and creates it.  Returns the server's representation of the imageReview, and an error, if there is any.
 func (c *FakeImageReviews) Create(imageReview *v1alpha1.ImageReview) (result *v1alpha1.ImageReview, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewCreateAction(imagereviewsResource, c.ns, imageReview), &v1alpha1.ImageReview{})
-
+		Invokes(testing.NewRootCreateAction(imagereviewsResource, imageReview), &v1alpha1.ImageReview{})
 	if obj == nil {
 		return nil, err
 	}

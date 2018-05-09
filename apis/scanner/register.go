@@ -45,6 +45,8 @@ var (
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
 		&ImageReview{},
+		&WorkloadReview{},
+		&ImageReviewOptions{},
 	)
 	return nil
 }

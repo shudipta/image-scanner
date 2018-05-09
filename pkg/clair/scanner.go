@@ -26,6 +26,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/tools/reference"
+	"k8s.io/kubernetes/pkg/credentialprovider"
 )
 
 type Scanner struct {
@@ -106,7 +107,7 @@ func (c *Scanner) ScanCluster() error {
 			if result, err := c.ScanWorkloadObject(&w); err != nil {
 				return err
 			} else {
-				resp := api.ImageReviewResponse{Images: result}
+				resp := api.WorkloadReviewResponse{Images: result}
 				if resp.HasVulnerabilities(c.severity) {
 					ref, err := reference.GetReference(scheme.Scheme, w.Object)
 					if err == nil {
@@ -133,31 +134,6 @@ func (c *Scanner) ScanWorkload(kindOrResource, name, namespace string) ([]api.Sc
 	return c.ScanWorkloadObject(w)
 }
 
-// checkContainers() checks vulnerabilities for each images used in containers.
-// Here, precache parameter indicates that checking is being done for storing
-// vulnerabilities and features of each image layer into cache. Otherwise,
-// if precache is false then
-// 		if any image is vulnerable then
-//           this method returns
-// This method takes namespace_name <namespace> of provided secrets <secretNames> and image name
-// of a docker image. For each secret, it reads the config data of secret and store it to
-// auth variable (map[string]map[string]AuthConfig)
-// we need this type to store config data, because original config date is in following format:
-// {
-//   "auths":{
-// 	   <api url>:{
-// 	 	 "username":<username>,
-// 	 	 "password":<password>,
-// 	 	 "email":<email>,
-// 	 	 "auth":<auth token>
-// 	   }
-// 	 }
-// }
-// Then it scans to find vulnerabilities in the image for all credentials. It returns
-// 			(true, error); if any error occured
-// 			(false, nil); if no vulnerability exists
-// If the image is not found with the secret info, then it tries with the public docker
-// url="https://registry-1.docker.io/"
 func (c *Scanner) ScanWorkloadObject(w *wpi.Workload) ([]api.ScanResult, error) {
 	var pullSecrets []core.Secret
 	for _, ref := range w.Spec.Template.Spec.ImagePullSecrets {
@@ -173,35 +149,69 @@ func (c *Scanner) ScanWorkloadObject(w *wpi.Workload) ([]api.ScanResult, error) 
 			pullSecrets = append(pullSecrets, *secret)
 		}
 	}
-	return c.scan(w, pullSecrets)
+	return c.scanImages(w, pullSecrets)
 }
 
-// checkContainers() checks vulnerabilities for each images used in containers.
-// Here, precache parameter indicates that checking is being done for storing
-// vulnerabilities and features of each image layer into cache. Otherwise,
-// if precache is false then
-// 		if any image is vulnerable then
-//           this method returns
-// This method takes namespace_name <namespace> of provided secrets <secretNames> and image name
-// of a docker image. For each secret, it reads the config data of secret and store it to
-// auth variable (map[string]map[string]AuthConfig)
-// we need this type to store config data, because original config date is in following format:
-// {
-//   "auths":{
-// 	   <api url>:{
-// 	 	 "username":<username>,
-// 	 	 "password":<password>,
-// 	 	 "email":<email>,
-// 	 	 "auth":<auth token>
-// 	   }
-// 	 }
-// }
-// Then it scans to find vulnerabilities in the image for all credentials. It returns
-// 			(true, error); if any error occured
-// 			(false, nil); if no vulnerability exists
-// If the image is not found with the secret info, then it tries with the public docker
-// url="https://registry-1.docker.io/"
-func (c *Scanner) scan(w *wpi.Workload, pullSecrets []core.Secret) ([]api.ScanResult, error) {
+func (c *Scanner) InitScanImage(image, namespace string, imagePullSecrets []string) error {
+	var pullSecrets []core.Secret
+	for _, name := range imagePullSecrets {
+		if s, ok := c.cache.Get(namespace + "/" + name); ok {
+			secret := s.(*core.Secret)
+			pullSecrets = append(pullSecrets, *secret)
+		} else {
+			secret, err := c.kc.CoreV1().Secrets(namespace).Get(name, metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+			c.cache.Add(namespace+"/"+name, secret)
+			pullSecrets = append(pullSecrets, *secret)
+		}
+	}
+
+	keyring, err := docker.MakeDockerKeyring(pullSecrets)
+	if err != nil {
+		return err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), Timeout)
+	defer cancel()
+
+	return c.postAncestry(ctx, keyring, image)
+}
+
+func (c *Scanner) ScanImage(image, namespace string, imagePullSecrets []string) (*api.ScanResult, error) {
+	var pullSecrets []core.Secret
+	for _, name := range imagePullSecrets {
+		if s, ok := c.cache.Get(namespace + "/" + name); ok {
+			secret := s.(*core.Secret)
+			pullSecrets = append(pullSecrets, *secret)
+		} else {
+			secret, err := c.kc.CoreV1().Secrets(namespace).Get(name, metav1.GetOptions{})
+			if err != nil {
+				return nil, err
+			}
+			c.cache.Add(namespace+"/"+name, secret)
+			pullSecrets = append(pullSecrets, *secret)
+		}
+	}
+
+	keyring, err := docker.MakeDockerKeyring(pullSecrets)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), Timeout)
+	defer cancel()
+
+	err = c.postAncestry(ctx, keyring, image)
+	if err != nil {
+		return nil, err
+	}
+
+	return c.getAncestry(ctx, image)
+}
+
+func (c *Scanner) scanImages(w *wpi.Workload, pullSecrets []core.Secret) ([]api.ScanResult, error) {
 	keyring, err := docker.MakeDockerKeyring(pullSecrets)
 	if err != nil {
 		return nil, err
@@ -220,43 +230,63 @@ func (c *Scanner) scan(w *wpi.Workload, pullSecrets []core.Secret) ([]api.ScanRe
 
 	results := make([]api.ScanResult, 0, images.Len())
 	for _, image := range images.List() {
-		ref, err := docker.ParseImageName(image)
-		if err != nil {
-			return nil, err
-		}
-		_, auth, mf, err := docker.PullManifest(ref, keyring)
-		if err != nil {
-			if c.failurePolicy == types.FailurePolicyIgnore {
-				continue
-			}
-			return nil, err
-		}
-
-		req, err := c.NewPostAncestryRequest(ref, auth, mf)
+		err = c.postAncestry(ctx, keyring, image)
 		if err != nil {
 			return nil, err
 		}
 
-		_, err = c.AncestryClient.PostAncestry(ctx, req)
+		result, err := c.getAncestry(ctx, image)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to send layers for image %s", ref)
+			return nil, err
 		}
-
-		resp, err := c.AncestryClient.GetAncestry(ctx, &clairpb.GetAncestryRequest{
-			AncestryName:        ref.String(),
-			WithFeatures:        true,
-			WithVulnerabilities: true,
-		})
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get layers for image %s", ref)
-		}
-
-		results = append(results, api.ScanResult{
-			Name:     image,
-			Features: getFeatures(resp),
-		})
+		results = append(results, *result)
 	}
 	return results, nil
+}
+
+func (c *Scanner) postAncestry(ctx context.Context, keyring credentialprovider.DockerKeyring, image string) error {
+	ref, err := docker.ParseImageName(image)
+	if err != nil {
+		return err
+	}
+	_, auth, mf, err := docker.PullManifest(ref, keyring)
+	if err != nil {
+		if c.failurePolicy == types.FailurePolicyIgnore {
+			return nil
+		}
+		return err
+	}
+
+	req, err := c.NewPostAncestryRequest(ref, auth, mf)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.AncestryClient.PostAncestry(ctx, req)
+	if err != nil {
+		return errors.Wrapf(err, "failed to send layers for image %s to clair", ref)
+	}
+	return nil
+}
+
+func (c *Scanner) getAncestry(ctx context.Context, image string) (*api.ScanResult, error) {
+	ref, err := docker.ParseImageName(image)
+	if err != nil {
+		return nil, err
+	}
+	req, err := c.AncestryClient.GetAncestry(ctx, &clairpb.GetAncestryRequest{
+		AncestryName:        ref.String(),
+		WithFeatures:        true,
+		WithVulnerabilities: true,
+	})
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get layers for image %s", image)
+	}
+
+	return &api.ScanResult{
+		Name:     image,
+		Features: getFeatures(req),
+	}, nil
 }
 
 func (c *Scanner) NewPostAncestryRequest(ref docker.ImageRef, auth *dockertypes.AuthConfig, mf interface{}) (*clairpb.PostAncestryRequest, error) {

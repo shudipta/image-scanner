@@ -9,9 +9,12 @@ import (
 	v "github.com/appscode/go/version"
 	"github.com/appscode/kutil/tools/analytics"
 	"github.com/jpillora/go-ogle-analytics"
+	"github.com/soter/scanner/client/clientset/versioned/scheme"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	genericapiserver "k8s.io/apiserver/pkg/server"
+	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/kubernetes/pkg/api/legacyscheme"
 )
 
 const (
@@ -37,6 +40,8 @@ func NewRootCmd() *cobra.Command {
 					client.Send(ga.NewEvent(parts[0], strings.Join(parts[1:], "/")).Label(v.Version.Version))
 				}
 			}
+			scheme.AddToScheme(clientsetscheme.Scheme)
+			scheme.AddToScheme(legacyscheme.Scheme)
 		},
 	}
 	rootCmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
@@ -47,6 +52,8 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.AddCommand(v.NewCmdVersion())
 	stopCh := genericapiserver.SetupSignalHandler()
 	rootCmd.AddCommand(NewCmdRun(os.Stdout, os.Stderr, stopCh))
+
+	rootCmd.AddCommand(NewCmdScan())
 
 	return rootCmd
 }

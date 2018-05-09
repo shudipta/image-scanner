@@ -1,5 +1,5 @@
 apiVersion: scanner.soter.ac/v1alpha1
-kind: ImageReview
+kind: WorkloadReview
 metadata:
   name: test
   namespace: default

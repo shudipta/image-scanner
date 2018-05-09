@@ -2,8 +2,6 @@ apiVersion: scanner.soter.ac/v1alpha1
 kind: ImageReview
 metadata:
   name: test
-  namespace: default
-#spec:
 request:
 #  image: appscode/voyager:6.0.0
   image: nginx

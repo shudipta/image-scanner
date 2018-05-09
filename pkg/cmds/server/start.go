@@ -77,15 +77,16 @@ func (o ScannerOptions) Config() (*server.ScannerConfig, error) {
 		"/apis/admission.scanner.soter.ac/v1alpha1/cronjobs",
 		"/apis/admission.scanner.soter.ac/v1alpha1/deploymentconfigs",
 		// image review endpoints
-		"/apis/scanner.soter.ac/v1alpha1/pods",
-		"/apis/scanner.soter.ac/v1alpha1/deployments",
-		"/apis/scanner.soter.ac/v1alpha1/daemonsets",
-		"/apis/scanner.soter.ac/v1alpha1/statefulsets",
-		"/apis/scanner.soter.ac/v1alpha1/replicationcontrollers",
-		"/apis/scanner.soter.ac/v1alpha1/replicasets",
-		"/apis/scanner.soter.ac/v1alpha1/jobs",
-		"/apis/scanner.soter.ac/v1alpha1/cronjobs",
-		"/apis/scanner.soter.ac/v1alpha1/deploymentconfigs",
+		"/apis/scanner.soter.ac/v1alpha1/namespaces/{namespace}/pods/{name}",
+		"/apis/scanner.soter.ac/v1alpha1/namespaces/{namespace}/deployments/{name}",
+		"/apis/scanner.soter.ac/v1alpha1/namespaces/{namespace}/daemonsets/{name}",
+		"/apis/scanner.soter.ac/v1alpha1/namespaces/{namespace}/statefulsets/{name}",
+		"/apis/scanner.soter.ac/v1alpha1/namespaces/{namespace}/replicationcontrollers/{name}",
+		"/apis/scanner.soter.ac/v1alpha1/namespaces/{namespace}/replicasets/{name}",
+		"/apis/scanner.soter.ac/v1alpha1/namespaces/{namespace}/jobs/{name}",
+		"/apis/scanner.soter.ac/v1alpha1/namespaces/{namespace}/cronjobs/{name}",
+		"/apis/scanner.soter.ac/v1alpha1/namespaces/{namespace}/deploymentconfigs/{name}",
+		"/apis/scanner.soter.ac/v1alpha1/imagereviews",
 	}
 
 	controllerConfig := controller.NewConfig(serverConfig.ClientConfig)
