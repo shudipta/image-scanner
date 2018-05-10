@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"time"
 
+	"github.com/appscode/agecache"
 	utilerrors "github.com/appscode/go/util/errors"
 	wpi "github.com/appscode/kubernetes-webhook-util/apis/workload/v1"
 	wcs "github.com/appscode/kubernetes-webhook-util/client/workload/v1"
@@ -13,7 +15,6 @@ import (
 	manifestV1 "github.com/docker/distribution/manifest/schema1"
 	manifestV2 "github.com/docker/distribution/manifest/schema2"
 	dockertypes "github.com/docker/docker/api/types"
-	"github.com/hashicorp/golang-lru"
 	"github.com/pkg/errors"
 	api "github.com/soter/scanner/apis/scanner/v1alpha1"
 	"github.com/soter/scanner/pkg/types"
@@ -24,6 +25,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/tools/reference"
 	"k8s.io/kubernetes/pkg/credentialprovider"
@@ -38,7 +40,7 @@ type Scanner struct {
 	NotificationClient clairpb.NotificationServiceClient
 	severity           types.Severity
 	failurePolicy      types.FailurePolicy
-	cache              *lru.Cache
+	cache              *agecache.Cache
 }
 
 func NewClient(addr string, certDir string) (clairpb.AncestryServiceClient, clairpb.NotificationServiceClient, error) {
@@ -64,10 +66,19 @@ func NewScanner(config *rest.Config, addr string, certDir string, severity types
 	if err != nil {
 		return nil, err
 	}
-	cache, err := lru.New(1024)
-	if err != nil {
-		return nil, err
-	}
+
+	cache := agecache.New(agecache.Config{
+		Capacity: 64,
+		MaxAge:   5 * time.Minute,
+		MinAge:   10 * time.Minute,
+		OnMiss: func(key interface{}) (interface{}, error) {
+			namespace, name, err := cache.SplitMetaNamespaceKey(key.(string))
+			if err != nil {
+				return nil, err
+			}
+			return kc.CoreV1().Secrets(namespace).Get(name, metav1.GetOptions{})
+		},
+	})
 
 	var opts []grpc.DialOption
 	if certDir == "" {
@@ -137,17 +148,12 @@ func (c *Scanner) ScanWorkload(kindOrResource, name, namespace string) ([]api.Sc
 func (c *Scanner) ScanWorkloadObject(w *wpi.Workload) ([]api.ScanResult, error) {
 	var pullSecrets []core.Secret
 	for _, ref := range w.Spec.Template.Spec.ImagePullSecrets {
-		if s, ok := c.cache.Get(w.Namespace + "/" + ref.Name); ok {
-			secret := s.(*core.Secret)
-			pullSecrets = append(pullSecrets, *secret)
-		} else {
-			secret, err := c.kc.CoreV1().Secrets(w.Namespace).Get(ref.Name, metav1.GetOptions{})
-			if err != nil {
-				return nil, err
-			}
-			c.cache.Add(w.Namespace+"/"+ref.Name, secret)
-			pullSecrets = append(pullSecrets, *secret)
+		s, err := c.cache.Get(w.Namespace + "/" + ref.Name)
+		if err != nil {
+			return nil, err
 		}
+		secret := s.(*core.Secret)
+		pullSecrets = append(pullSecrets, *secret)
 	}
 	return c.scanImages(w, pullSecrets)
 }
@@ -155,17 +161,12 @@ func (c *Scanner) ScanWorkloadObject(w *wpi.Workload) ([]api.ScanResult, error) 
 func (c *Scanner) InitScanImage(image, namespace string, imagePullSecrets []string) error {
 	var pullSecrets []core.Secret
 	for _, name := range imagePullSecrets {
-		if s, ok := c.cache.Get(namespace + "/" + name); ok {
-			secret := s.(*core.Secret)
-			pullSecrets = append(pullSecrets, *secret)
-		} else {
-			secret, err := c.kc.CoreV1().Secrets(namespace).Get(name, metav1.GetOptions{})
-			if err != nil {
-				return err
-			}
-			c.cache.Add(namespace+"/"+name, secret)
-			pullSecrets = append(pullSecrets, *secret)
+		s, err := c.cache.Get(namespace + "/" + name)
+		if err != nil {
+			return err
 		}
+		secret := s.(*core.Secret)
+		pullSecrets = append(pullSecrets, *secret)
 	}
 
 	keyring, err := docker.MakeDockerKeyring(pullSecrets)
@@ -182,17 +183,12 @@ func (c *Scanner) InitScanImage(image, namespace string, imagePullSecrets []stri
 func (c *Scanner) ScanImage(image, namespace string, imagePullSecrets []string) (*api.ScanResult, error) {
 	var pullSecrets []core.Secret
 	for _, name := range imagePullSecrets {
-		if s, ok := c.cache.Get(namespace + "/" + name); ok {
-			secret := s.(*core.Secret)
-			pullSecrets = append(pullSecrets, *secret)
-		} else {
-			secret, err := c.kc.CoreV1().Secrets(namespace).Get(name, metav1.GetOptions{})
-			if err != nil {
-				return nil, err
-			}
-			c.cache.Add(namespace+"/"+name, secret)
-			pullSecrets = append(pullSecrets, *secret)
+		s, err := c.cache.Get(namespace + "/" + name)
+		if err != nil {
+			return nil, err
 		}
+		secret := s.(*core.Secret)
+		pullSecrets = append(pullSecrets, *secret)
 	}
 
 	keyring, err := docker.MakeDockerKeyring(pullSecrets)

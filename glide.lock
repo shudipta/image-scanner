@@ -1,5 +1,5 @@
 hash: 2bf753c4e47df2c593ac1ede90600f145369c0bd848508e03293aa7a5ad14f83
-updated: 2018-05-09T11:44:16.637951973-07:00
+updated: 2018-05-09T17:41:07.430738874-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -8,6 +8,8 @@ imports:
   subpackages:
   - compute/metadata
   - internal
+- name: github.com/appscode/agecache
+  version: 52691b5239adecf0def5766ce769c8cdd7d1ceef
 - name: github.com/appscode/docker-registry-client
   version: 1bb02bb202b07d1600ed46d7a63f8d79dd6dc980
   subpackages:
