@@ -18,7 +18,7 @@ else
             ;;
 
         Linux)
-            curl -fsSL -o onessl https://github.com/kubepack/onessl/releases/download/0.1.0/onessl-linux-amd64
+            curl -fsSL -o onessl https://github.com/kubepack/onessl/releases/download/0.3.0/onessl-linux-amd64
             chmod +x onessl
             export ONESSL=./onessl
             ;;
@@ -65,13 +65,15 @@ while test $# -gt 0; do
     esac
 done
 
+rm -rf pki/
+
 echo "creating necessary certificate-key pairs"
 
 # create necessary TLS certificates:
 # - a local CA key and cert
 # - a webhook server key and cert signed by the local CA
 $ONESSL create ca-cert --cert-dir=pki/scanner
-$ONESSL create server-cert server --cert-dir=pki/scanner --domains=scanner.${SCANNER_NAMESPACE}.svc
+$ONESSL create server-cert server --cert-dir=pki/scanner --domains="scanner-local-apiserver.${SCANNER_NAMESPACE}.svc,scanner.${SCANNER_NAMESPACE}.svc,localhost" --ips="192.168.99.100,127.0.0.1,0.0.0.0"
 
 # In the clair notifier part, server=scanner-server, client=clair
 # create necessary TLS certificates:
@@ -84,7 +86,7 @@ $ONESSL create client-cert client --cert-dir=pki/scanner
 # - a server key and cert signed by this CA for clair api
 # - a client key and cert signed by this CA for clair api
 $ONESSL create ca-cert --cert-dir=pki/clair
-$ONESSL create server-cert server --cert-dir=pki/clair --domains=clairsvc.${SCANNER_NAMESPACE}.svc --ips="192.168.99.100,127.0.0.1"
+$ONESSL create server-cert server --cert-dir=pki/clair --domains="scanner-local-apiserver.${SCANNER_NAMESPACE}.svc,clairsvc.${SCANNER_NAMESPACE}.svc,localhost" --ips="192.168.99.100,127.0.0.1,0.0.0.0"
 $ONESSL create client-cert client --cert-dir=pki/clair
 
 popd

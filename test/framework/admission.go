@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/soter/scanner/pkg/cmds/server"
+	"github.com/tamalsaha/go-oneliners"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	kapi "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
@@ -25,6 +26,7 @@ func (f *Framework) NewScannerOptions(kubeConfigPath string, extraOptions *serve
 	opts.RecommendedOptions.SecureServing.BindPort = 8443
 	opts.RecommendedOptions.SecureServing.BindAddress = net.ParseIP("127.0.0.1")
 	opts.ExtraOptions = extraOptions
+	oneliners.PrettyJson(extraOptions, "extraOptions")
 	opts.StdErr = os.Stderr
 	opts.StdOut = os.Stdout
 

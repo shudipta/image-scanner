@@ -49,7 +49,8 @@ var _ = BeforeSuite(func() {
 	go root.StartAPIServerAndOperator(options.KubeConfig, options.ExtraOptions)
 	root.EventuallyAPIServerReady("v1alpha1.admission.scanner.soter.ac").Should(Succeed())
 	// let's API server be warmed up
-	time.Sleep(time.Second * 5)
+	//time.Sleep(time.Second * 5)
+	time.Sleep(time.Minute * 30)
 })
 
 var _ = AfterSuite(func() {

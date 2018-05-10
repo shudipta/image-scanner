@@ -17,6 +17,7 @@ import (
 	dockertypes "github.com/docker/docker/api/types"
 	"github.com/pkg/errors"
 	api "github.com/soter/scanner/apis/scanner/v1alpha1"
+	"github.com/soter/scanner/pkg/eventer"
 	"github.com/soter/scanner/pkg/types"
 	"google.golang.org/grpc"
 	core "k8s.io/api/core/v1"
@@ -58,6 +59,11 @@ func NewClient(addr string, certDir string) (clairpb.AncestryServiceClient, clai
 }
 
 func NewScanner(config *rest.Config, addr string, certDir string, severity types.Severity, failurePolicy types.FailurePolicy) (*Scanner, error) {
+	fmt.Println("==================", addr)
+	fmt.Println("==================", certDir)
+	fmt.Println("==================", severity)
+	fmt.Println("==================", failurePolicy)
+
 	kc, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -66,6 +72,7 @@ func NewScanner(config *rest.Config, addr string, certDir string, severity types
 	if err != nil {
 		return nil, err
 	}
+	recorder := eventer.NewEventRecorder(kc, "Scanner")
 
 	c := agecache.New(agecache.Config{
 		Capacity: 128,
@@ -83,12 +90,14 @@ func NewScanner(config *rest.Config, addr string, certDir string, severity types
 	var opts []grpc.DialOption
 	if certDir == "" {
 		opts = append(opts, grpc.WithInsecure())
+		fmt.Println("==================== connection setting up: insecure =============")
 	} else {
 		tlsOption, err := DialOptionForTLSConfig(certDir)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get dial option for tls")
 		}
 		opts = append(opts, tlsOption)
+		fmt.Println("==================== connection setting up: secure =============")
 	}
 	conn, err := grpc.Dial(addr, opts...)
 	if err != nil {
@@ -97,12 +106,15 @@ func NewScanner(config *rest.Config, addr string, certDir string, severity types
 	ctrl := &Scanner{
 		kc:                 kc,
 		wc:                 wc,
+		recorder:           recorder,
 		AncestryClient:     clairpb.NewAncestryServiceClient(conn),
 		NotificationClient: clairpb.NewNotificationServiceClient(conn),
 		severity:           severity,
 		failurePolicy:      failurePolicy,
 		cache:              c,
 	}
+
+	fmt.Println("======================= connection setup is successful")
 	return ctrl, nil
 }
 
@@ -119,6 +131,7 @@ func (c *Scanner) ScanCluster() error {
 				return err
 			} else {
 				resp := api.WorkloadReviewResponse{Images: result}
+				//oneliners.PrettyJson(resp, w.Kind, w.Name, w.Namespace)
 				if resp.HasVulnerabilities(c.severity) {
 					ref, err := reference.GetReference(scheme.Scheme, w.Object)
 					if err == nil {

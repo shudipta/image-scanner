@@ -29,6 +29,7 @@ func DialOptionForTLSConfig(certDir string) (grpc.DialOption, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to read ca cert: %s", err)
 	}
+	fmt.Println(string(pemCert))
 
 	ok := certPool.AppendCertsFromPEM(pemCert)
 	if !ok {

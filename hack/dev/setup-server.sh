@@ -66,6 +66,9 @@ while test $# -gt 0; do
     esac
 done
 
+#hack/dev/certgen.sh -n $SCANNER_NAMESPACE
+#clair --config=$GOPATH/src/github.com/coreos/clair/config.sample.secure.notifier.yaml
+
 # kubectl create ns $SCANNER_NAMESPACE
 cat $REPO_ROOT/hack/dev/apiregistration.yaml | $ONESSL envsubst | kubectl apply -f -
 cat $REPO_ROOT/hack/deploy/validating-webhook.yaml | $ONESSL envsubst | kubectl apply -f -

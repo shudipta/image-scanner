@@ -127,10 +127,6 @@ func (c completedConfig) New() (*ScannerServer, error) {
 		return nil, err
 	}
 
-	routes.AuditLogWebhook{
-		ClairNotificationServiceClient: c.ScannerConfig.Scanner.NotificationClient,
-	}.Install(genericServer.Handler.NonGoRestfulMux)
-
 	var admissionHooks = []hooks.AdmissionHook{
 		ctrl.NewDeploymentWebhook(),
 		ctrl.NewDaemonSetWebhook(),
@@ -145,6 +141,10 @@ func (c completedConfig) New() (*ScannerServer, error) {
 		GenericAPIServer: genericServer,
 		Scanner:          ctrl,
 	}
+
+	routes.AuditLogWebhook{
+		Scanner: s.Scanner,
+	}.Install(genericServer.Handler.NonGoRestfulMux)
 
 	for _, versionMap := range admissionHooksByGroupThenVersion(admissionHooks...) {
 
