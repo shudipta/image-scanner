@@ -67,10 +67,10 @@ func NewScanner(config *rest.Config, addr string, certDir string, severity types
 		return nil, err
 	}
 
-	cache := agecache.New(agecache.Config{
-		Capacity: 64,
-		MaxAge:   5 * time.Minute,
-		MinAge:   10 * time.Minute,
+	c := agecache.New(agecache.Config{
+		Capacity: 128,
+		MaxAge:   10 * time.Minute,
+		MinAge:   5 * time.Minute,
 		OnMiss: func(key interface{}) (interface{}, error) {
 			namespace, name, err := cache.SplitMetaNamespaceKey(key.(string))
 			if err != nil {
@@ -101,7 +101,7 @@ func NewScanner(config *rest.Config, addr string, certDir string, severity types
 		NotificationClient: clairpb.NewNotificationServiceClient(conn),
 		severity:           severity,
 		failurePolicy:      failurePolicy,
-		cache:              cache,
+		cache:              c,
 	}
 	return ctrl, nil
 }
