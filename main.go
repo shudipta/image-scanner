@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -11,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"time"
 
 	reg "github.com/heroku/docker-registry-client/registry"
@@ -63,7 +63,10 @@ func keepFootStep(f string, a ...interface{}) {
 }
 
 func RequestBearerToken(repo, user, pass string) *http.Request {
-	url := "https://auth.docker.io/token?service=registry.docker.io&scope=repository:" + repo + ":pull&account=" + user
+	url := "https://auth.docker.io/token?service=registry.docker.io&scope=repository:" + repo + ":pull"
+	if user != "" {
+		url = url + "&account=" + user
+	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Fatalf("\nerror in creating request for Bearer Token:\n%s\n%v\n",
@@ -89,43 +92,67 @@ func GetBearerToken(resp *http.Response, err error) string {
 	}
 
 	if err = json.NewDecoder(resp.Body).Decode(&token); err != nil {
-		log.Fatal("\nerror in decoding Bearer Token response Body:\n%s\n%v\n",
+		log.Fatalf("\nerror in decoding Bearer Token response Body:\n%s\n%v\n",
 			"--------------------------------------------------", err)
+	}
+	if token.Token == "" {
+		log.Fatal("\nEmpty Bearer Token\n",
+			"--------------------------------------------------")
 	}
 	return fmt.Sprintf("Bearer %s", token.Token)
 }
 
-func GetVulnerabilities(res *clairpb.GetAncestryResponse) []*clair.Vulnerability {
-	//return nil
-	var vuls []*clair.Vulnerability
-	for _, feature := range res.Ancestry.Features {
-		for _, vul := range feature.Vulnerabilities {
-			vuls = append(vuls, &clair.Vulnerability{
-				Name:          vul.Name,
-				NamespaceName: vul.NamespaceName,
-				Description:   vul.Description,
-				Link:          vul.Link,
-				Severity:      vul.Severity,
-				FixedBy:       vul.FixedBy,
-				FeatureName:   feature.Name,
-			})
+func GetVulnerabilities(res clair.ScanResult) []clair.Vulnerability {
+	var vuls []clair.Vulnerability
+	for _, l := range res.Layers {
+		for _, f := range l.Features {
+			vuls = append(vuls, f.Vulnerabilities...)
 		}
 	}
 
 	return vuls
 }
 
-func GetFeaturs(res *clairpb.GetAncestryResponse) []*clair.Feature {
-	var fs []*clair.Feature
-	for _, feature := range res.Ancestry.Features {
-		fs = append(fs, &clair.Feature{
-			Name:          feature.Name,
-			NamespaceName: feature.NamespaceName,
-			Version:       feature.Version,
-		})
+func GetResult(res *clairpb.GetAncestryResponse) clair.ScanResult {
+	var r clair.ScanResult
+	r.Name = res.Ancestry.Name
+	r.Layers = make([]clair.Layer, 0, len(res.Ancestry.Layers))
+
+	for _, l := range res.Ancestry.Layers {
+		layer := clair.Layer{}
+		if l != nil {
+			if l.Layer != nil {
+				layer.Hash = l.Layer.Hash
+			}
+			for _, f := range l.DetectedFeatures {
+				if f != nil {
+					feat := clair.Feature{
+						Name: f.Name,
+						Version: f.Version,
+					}
+					if f.Namespace != nil {
+						feat.NamespaceName = f.Namespace.Name
+					}
+					for _, v := range f.Vulnerabilities {
+						if v != nil {
+							feat.Vulnerabilities = append(feat.Vulnerabilities, clair.Vulnerability{
+								Name: v.Name,
+								NamespaceName: v.NamespaceName,
+								Description: v.Description,
+								Link: v.Link,
+								Severity: v.Severity,
+								FixedBy: v.FixedBy,
+							})
+						}
+					}
+					layer.Features = append(layer.Features, feat)
+				}
+			}
+		}
+		r.Layers = append(r.Layers, layer)
 	}
 
-	return fs
+	return r
 }
 
 func parseImageName(imageName string) (string, string, string, string, error) {
@@ -204,7 +231,7 @@ func clairClientSetup(clairAddress string) clairpb.AncestryServiceClient {
 
 	conn, err := grpc.Dial(clairAddress, dialOption)
 	if err != nil {
-		log.Fatalf("error in connecting", err)
+		log.Fatalf("error in connecting: %v", err)
 	}
 
 	c := clairpb.NewAncestryServiceClient(conn)
@@ -227,12 +254,10 @@ func sendLayer(
 
 func getLayer(
 	repo string,
-	clairClient clairpb.AncestryServiceClient) ([]*clair.Feature, []*clair.Vulnerability) {
+	clairClient clairpb.AncestryServiceClient) clair.ScanResult {
 
 	req := &clairpb.GetAncestryRequest{
 		AncestryName:        repo,
-		WithFeatures:        true,
-		WithVulnerabilities: true,
 	}
 	oneliners.PrettyJson(req, "get request")
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
@@ -243,7 +268,7 @@ func getLayer(
 		log.Fatalf("\nerror in getting layer:\n%s\n%v\n",
 			"--------------------------------------------------", err)
 	}
-	return GetFeaturs(resp), GetVulnerabilities(resp)
+	return GetResult(resp)
 }
 
 var imageName, user, pass, clairAddress string
@@ -255,6 +280,99 @@ func init() {
 	flag.StringVar(&pass, "pass", "", "password of private docker repo")
 	flag.StringVar(&clairAddress, "clairAddress", "192.168.99.100:30060", "password of private docker repo")
 	flag.BoolVar(&secure, "secure", true, "insecure")
+}
+
+var tokenRe = regexp.MustCompile(`Bearer realm="(.*?)",service="(.*?)",scope="(.*?)"`)
+func requestToken(client *http.Client, resp *http.Response) (string, error) {
+	authHeader := resp.Header.Get("Www-Authenticate")
+	if authHeader == "" {
+		return "", fmt.Errorf("Empty Www-Authenticate")
+	}
+	parts := tokenRe.FindStringSubmatch(authHeader)
+	if parts == nil {
+		return "", fmt.Errorf("Can't parse Www-Authenticate: %s", authHeader)
+	}
+	realm, service, scope := parts[1], parts[2], parts[3]
+	var url string
+	if user != "" {
+		url = fmt.Sprintf("%s?service=%s&scope=%s&account=%s", realm, service, scope, user)
+	} else {
+		url = fmt.Sprintf("%s?service=%s&scope=%s", realm, service, scope)
+	}
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		fmt.Println(os.Stderr, "Can't create a request")
+		return "", err
+	}
+	if user != "" {
+		req.SetBasicAuth(user, pass)
+	}
+	tResp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	defer tResp.Body.Close()
+	if tResp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("Token request returned %d", tResp.StatusCode)
+	}
+	var tokenEnv struct {
+		Token string
+	}
+
+	if err = json.NewDecoder(tResp.Body).Decode(&tokenEnv); err != nil {
+		fmt.Fprintln(os.Stderr, "Token response decode error")
+		return "", err
+	}
+	return fmt.Sprintf("Bearer %s", tokenEnv.Token), nil
+}
+
+func pullLayer(client *http.Client, url string, token *string) (*http.Response, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		log.Fatalln(os.Stderr, "Can't create a request")
+	}
+	if user != "" {
+		req.SetBasicAuth(user, pass)
+		*token = req.Header.Get("Authorization")
+	}
+
+	return client.Do(req)
+}
+
+func getAuthToken(client *http.Client, url string, token *string) error {
+	resp, err := pullLayer(client, url, token)
+	if err != nil {
+		log.Fatal("err = ", err)
+		return err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		if *token == "" {
+			*token, err = requestToken(client, resp)
+		}
+		if err != nil {
+			log.Fatal("err = ", err)
+			return err
+		}
+		// try again
+		resp, err = pullLayer(client, url, token)
+		if err != nil {
+			log.Fatal("err = ", err)
+			return err
+		}
+		defer resp.Body.Close()
+		// try one more time by clearing the token to request it
+		if resp.StatusCode == http.StatusUnauthorized {
+			*token, err = requestToken(client, resp)
+			if err != nil {
+				log.Fatal("err = ", err)
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func main() {
@@ -291,7 +409,7 @@ func main() {
 		Client: &http.Client{
 			Transport: reg.WrapTransport(http.DefaultTransport, registryUrl, user, pass),
 		},
-		Logf: reg.Quiet,
+		Logf: reg.Log,
 	}
 
 	// TODO: need to work with hub.ManifestVx()
@@ -306,11 +424,20 @@ func main() {
 		Format:       "Docker",
 	}
 
-	token = "Basic " + base64.StdEncoding.EncodeToString([]byte(user+":"+pass))
+	//token = "Basic " + base64.StdEncoding.EncodeToString([]byte(user+":"+pass))
+	//token = "Bearer " + "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVmYjAxYzFmMGIzYTVmNjJhODBkMDQyMTAzZGFkOTA1YTAxYzJiOTk3Y2QwZDllYTJlMzZmMDBkY2Q0ODQ0MjYifQ.eyJhY2Nlc3MiOlt7InR5cGUiOiJyZXBvc2l0b3J5IiwibmFtZSI6ImNvcmVvcy9jbGFpci1naXQiLCJhY3Rpb25zIjpbInB1bGwiXX1dLCJjb250ZXh0Ijp7ImNvbS5hcG9zdGlsbGUucm9vdHMiOnsiY29yZW9zL2NsYWlyLWdpdCI6IiRkaXNhYmxlZCJ9LCJjb20uYXBvc3RpbGxlLnJvb3QiOiIkZGlzYWJsZWQifSwiYXVkIjoicXVheS5pbyIsImV4cCI6MTU0NjUxODQzNSwiaXNzIjoicXVheSIsImlhdCI6MTU0NjUxNDgzNSwibmJmIjoxNTQ2NTE0ODM1LCJzdWIiOiIoYW5vbnltb3VzKSJ9.dOn3Zk9HPS9aJOXFgobt25gx3k5zrFcG2wf5OPxWkQFiQ7w2oSXqXy3v3VnsuEsMe8AFDUNBj1-3DM5rODMBdXcOJXhmF8XelqTe1v3jXc84tG5f97UgNloLahtFzcBa79-4Rnh3Zmng03JsNGVzvka6IGmdl0UFyPo2XL1JWgE5hPJWAWYRNpuqRNG_ccIzH7XmJYxDl1ImW3BV5aFmoT0d0GtVtS_8i6tx8cWqK3gV3iNGx7YCVtFEsRnoVfEfmfDgVtgORK0BtVU6Dc_WUOw98EIuV4C-wFJSEDXKZFS3BBEi57EGpdDFv1nKHevTMisJu3KsLO5IqTcB02qdtg"
 	switch manifest := mx.(type) {
 	case *manifestV2.DeserializedManifest:
+		oneliners.PrettyJson(*manifest, "v2")
 		layers := make([]*clairpb.PostAncestryRequest_PostLayer, len(manifest.Layers))
 		for i, layer := range manifest.Layers {
+			if token == "" {
+				url := fmt.Sprintf("%s/%s/%s/%s", registryUrl, repo, "blobs", layer.Digest.String())
+				err = getAuthToken(&client, url, &token)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
 			layers[i] = &clairpb.PostAncestryRequest_PostLayer{
 				Hash:    hashPart(manifest.Config.Digest.String()) + hashPart(layer.Digest.String()),
 				Path:    fmt.Sprintf("%s/%s/%s/%s", registryUrl, repo, "blobs", layer.Digest.String()),
@@ -319,8 +446,16 @@ func main() {
 		}
 		postAncestryRequest.Layers = layers
 	case *manifestV1.SignedManifest:
+		oneliners.PrettyJson(*manifest, "v1")
 		layers := make([]*clairpb.PostAncestryRequest_PostLayer, len(manifest.FSLayers))
 		for i, layer := range manifest.FSLayers {
+			if token == "" {
+				url := fmt.Sprintf("%s/%s/%s/%s", registryUrl, repo, "blobs", layer.BlobSum.String())
+				err = getAuthToken(&client, url, &token)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
 			layers[len(manifest.FSLayers)-1-i] = &clairpb.PostAncestryRequest_PostLayer{
 				Hash:    hashPart(layer.BlobSum.String()),
 				Path:    fmt.Sprintf("%s/%s/%s/%s", registryUrl, repo, "blobs", layer.BlobSum.String()),
@@ -340,11 +475,13 @@ func main() {
 
 	clairClient := clairClientSetup(clairAddress)
 	sendLayer(postAncestryRequest, clairClient)
-	_, vuls := getLayer(repo, clairClient)
+	scanResult := getLayer(repo, clairClient)
+	vuls := GetVulnerabilities(scanResult)
 
 	//oneliners.PrettyJson(fs)
+	oneliners.PrettyJson(scanResult)
 	oneliners.PrettyJson(vuls)
-	if vuls != nil {
+	if len(vuls) > 0 {
 		fmt.Println("Contains vuls")
 	}
 }

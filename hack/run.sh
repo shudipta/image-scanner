@@ -6,9 +6,6 @@ REPO_ROOT="$GOPATH/src/github.com/shudipta/$PACKAGE_NAME"
 
 pushd $REPO_ROOT
 
-minikube delete
-minikube stop
-minikube start
 kubectl create secret generic clairsecret --from-file=./hack/deploy/config.yaml
 kubectl create -f ./hack/deploy/clair-kubernetes.yaml
 

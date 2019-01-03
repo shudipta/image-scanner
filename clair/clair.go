@@ -32,16 +32,27 @@ type Vulnerability struct {
 	Description   string                 `json:"Description,omitempty"`
 	Link          string                 `json:"Link,omitempty"`
 	Severity      string                 `json:"Severity,omitempty"`
-	Metadata      map[string]interface{} `json:"Metadata,omitempty"`
+	//Metadata      map[string]interface{} `json:"Metadata,omitempty"`
 	FixedBy       string                 `json:"FixedBy,omitempty"`
-	FixedIn       []feature              `json:"FixedIn,omitempty"`
+	//FixedIn       []feature              `json:"FixedIn,omitempty"`
 	FeatureName   string                 `json:"featureName",omitempty`
 }
 
 type Feature struct {
-	Name            string          `json:"Name,omitempty"`
-	NamespaceName   string          `json:"NamespaceName,omitempty"`
-	Version         string          `json:"Version,omitempty"`
+	Name          string
+	NamespaceName string
+	Version       string
+	Vulnerabilities []Vulnerability
+}
+
+type Layer struct {
+	Hash     string
+	Features []Feature
+}
+
+type ScanResult struct {
+	Name string
+	Layers []Layer
 }
 
 func New(url string)  {

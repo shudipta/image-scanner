@@ -36,28 +36,24 @@ func Register(b Builder) {
 }
 
 // Get returns the resolver builder registered with the given scheme.
-// If no builder is register with the scheme, the default scheme will
-// be used.
-// If the default scheme is not modified, "dns" will be the default
-// scheme, and the preinstalled dns resolver will be used.
-// If the default scheme is modified, and a resolver is registered with
-// the scheme, that resolver will be returned.
-// If the default scheme is modified, and no resolver is registered with
-// the scheme, nil will be returned.
+//
+// If no builder is register with the scheme, nil will be returned.
 func Get(scheme string) Builder {
 	if b, ok := m[scheme]; ok {
-		return b
-	}
-	if b, ok := m[defaultScheme]; ok {
 		return b
 	}
 	return nil
 }
 
 // SetDefaultScheme sets the default scheme that will be used.
-// The default default scheme is "dns".
+// The default default scheme is "passthrough".
 func SetDefaultScheme(scheme string) {
 	defaultScheme = scheme
+}
+
+// GetDefaultScheme gets the default scheme that will be used.
+func GetDefaultScheme() string {
+	return defaultScheme
 }
 
 // AddressType indicates the address type returned by name resolution.
@@ -94,6 +90,11 @@ type BuildOption struct {
 
 // ClientConn contains the callbacks for resolver to notify any updates
 // to the gRPC ClientConn.
+//
+// This interface is to be implemented by gRPC. Users should not need a
+// brand new implementation of this interface. For the situations like
+// testing, the new implementation should embed this interface. This allows
+// gRPC to add new methods to this interface.
 type ClientConn interface {
 	// NewAddress is called by resolver to notify ClientConn a new list
 	// of resolved addresses.

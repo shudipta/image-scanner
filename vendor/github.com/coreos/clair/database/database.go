@@ -20,6 +20,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/coreos/clair/pkg/pagination"
 )
 
 var (
@@ -31,6 +33,14 @@ var (
 	// fails (i.e. when an entity which is supposed to be unique is detected
 	// twice)
 	ErrInconsistent = errors.New("database: inconsistent database")
+
+	// ErrInvalidParameters is an error that occurs when the parameters are not valid.
+	ErrInvalidParameters = errors.New("database: parameters are not valid")
+
+	// ErrMissingEntities is an error that occurs when an associated immutable
+	// entity doesn't exist in the database. This error can indicate a wrong
+	// implementation or corrupted database.
+	ErrMissingEntities = errors.New("database: associated immutable entities are missing in the database")
 )
 
 // RegistrableComponentConfig is a configuration block that can be used to
@@ -91,18 +101,14 @@ type Session interface {
 
 	// UpsertAncestry inserts or replaces an ancestry and its namespaced
 	// features and processors used to scan the ancestry.
-	UpsertAncestry(ancestry Ancestry, features []NamespacedFeature, processedBy Processors) error
+	UpsertAncestry(Ancestry) error
 
-	// FindAncestry retrieves an ancestry with processors used to scan the
-	// ancestry. If the ancestry is not found, return false.
-	//
-	// The ancestry's processors are returned to short cut processing ancestry
-	// if it has been processed by all processors in the current Clair instance.
-	FindAncestry(name string) (ancestry Ancestry, processedBy Processors, found bool, err error)
+	// FindAncestry retrieves an ancestry with all detected
+	// namespaced features. If the ancestry is not found, return false.
+	FindAncestry(name string) (ancestry Ancestry, found bool, err error)
 
-	// FindAncestryFeatures retrieves an ancestry with all detected namespaced
-	// features. If the ancestry is not found, return false.
-	FindAncestryFeatures(name string) (ancestry AncestryWithFeatures, found bool, err error)
+	// PersistDetector inserts a slice of detectors if not in the database.
+	PersistDetectors(detectors []Detector) error
 
 	// PersistFeatures inserts a set of features if not in the database.
 	PersistFeatures(features []Feature) error
@@ -125,22 +131,14 @@ type Session interface {
 	// PersistNamespaces inserts a set of namespaces if not in the database.
 	PersistNamespaces([]Namespace) error
 
-	// PersistLayer inserts a layer if not in the datastore.
-	PersistLayer(Layer) error
-
-	// PersistLayerContent persists a layer's content in the database. The given
-	// namespaces and features can be partial content of this layer.
+	// PersistLayer appends a layer's content in the database.
 	//
-	// The layer, namespaces and features are expected to be already existing
-	// in the database.
-	PersistLayerContent(hash string, namespaces []Namespace, features []Feature, processedBy Processors) error
+	// If any feature, namespace, or detector is not in the database, it returns not found error.
+	PersistLayer(hash string, features []LayerFeature, namespaces []LayerNamespace, detectedBy []Detector) error
 
-	// FindLayer retrieves a layer and the processors scanned the layer.
-	FindLayer(hash string) (layer Layer, processedBy Processors, found bool, err error)
-
-	// FindLayerWithContent returns a layer with all detected features and
+	// FindLayer returns a layer with all detected features and
 	// namespaces.
-	FindLayerWithContent(hash string) (layer LayerWithContent, found bool, err error)
+	FindLayer(hash string) (layer Layer, found bool, err error)
 
 	// InsertVulnerabilities inserts a set of UNIQUE vulnerabilities with
 	// affected features into database, assuming that all vulnerabilities
@@ -168,20 +166,13 @@ type Session interface {
 	// affected ancestries affected by old or new vulnerability.
 	//
 	// Because the number of affected ancestries maybe large, they are paginated
-	// and their pages are specified by the given encrypted PageNumbers, which,
-	// if empty, are always considered first page.
-	//
-	// Session interface implementation should have encrypt and decrypt
-	// functions for PageNumber.
-	FindVulnerabilityNotification(name string, limit int,
-		oldVulnerabilityPage PageNumber,
-		newVulnerabilityPage PageNumber) (
-		noti VulnerabilityNotificationWithVulnerable,
-		found bool, err error)
+	// and their pages are specified by the pagination token, which should be
+	// considered first page when it's empty.
+	FindVulnerabilityNotification(name string, limit int, oldVulnerabilityPage pagination.Token, newVulnerabilityPage pagination.Token) (noti VulnerabilityNotificationWithVulnerable, found bool, err error)
 
-	// MarkNotificationNotified marks a Notification as notified now, assuming
+	// MarkNotificationAsRead marks a Notification as notified now, assuming
 	// the requested notification is in the database.
-	MarkNotificationNotified(name string) error
+	MarkNotificationAsRead(name string) error
 
 	// DeleteNotification removes a Notification in the database.
 	DeleteNotification(name string) error
